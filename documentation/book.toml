@@ -1,0 +1,9 @@
+[book]
+authors = ["Maybee Rezbit"]
+language = "en"
+multilingual = false
+src = "src"
+title = "SillyScript"
+
+[preprocessor]
+double_codeblocks.command = "bun scripts/DoubleCodeblocks.ts"
