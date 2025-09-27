@@ -46,6 +46,12 @@ jobs:
         run: cargo install mdbook
 
       # Skinny penis.
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Build the documentation by running build command on documentation.
       - name: Build Documentation
         run: mdbook build
         working-directory: documentation
