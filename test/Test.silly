@@ -1,0 +1,18 @@
+12;
+"Test";
+false;
+:
+	1; 2;
+	3;
+
+syntax If:
+    pattern:
+        if <condition: dict!condition>:
+            <contents: dict!action list>
+
+	### Transmutes ###
+    def transmute(condition: dict, contents: list) -> dict!action:
+        type: 2;
+        condition: condition;
+        if_true: contents;
+        if_false: null;
