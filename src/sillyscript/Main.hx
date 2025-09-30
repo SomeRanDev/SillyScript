@@ -6,20 +6,36 @@ import sillyscript.filesystem.Arguments;
 	The main function for the compiler executable.
 **/
 function main() {
-	#if sys
-	final args = Arguments.make();
-	if(args == null) return;
+	#if (sys || hxnodejs)
+	final arguments = switch(Arguments.make()) {
+		case Success(arguments): arguments;
+		case Error(error): {
+			Sys.println(error.message());
+			return;
+		}
+	}
 
-	final input = args.getInputContent();
-	if(input == null) return;
-
+	final input = switch(arguments.getInputContent()) {
+		case Success(input): input;
+		case Error(error): {
+			Sys.println(error.message());
+			return;
+		}
+	}
+	
 	final compiler = new SillyScript();
-	switch(compiler.compile(input)) {
+	switch(compiler.compile(
+		input,
+		arguments.getInputFilePathRelativeTo(Sys.getCwd()),
+		"file:///" + arguments.getInputFilePath()
+	)) {
 		case Success(content): {
-			args.writeOutputContent(content);
+			arguments.writeOutputContent(content);
 		}
 		case Error(errors): {
-			Sys.println(errors);
+			for(e in errors) {
+				Console.printlnFormatted(compiler.getErrorString(e, true));
+			}
 		}
 	}
 	#end

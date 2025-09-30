@@ -48,7 +48,7 @@ class File {
 	/**
 		Returns absolute path this file represents.
 	**/
-	public function get_path(): String {
+	public function getPath(): String {
 		return path;
 	}
 

@@ -1,12 +1,14 @@
 package sillyscript.compiler;
 
-import sillyscript.Position.PositionKind;
-using sillyscript.Error;
+import sillyscript.Position;
+using sillyscript.extensions.StringExt;
 
+@:using(sillyscript.compiler.Lexer.TokenExt)
 enum Token {
 	Identifier(content: String);
 	Keyword(keyword: Keyword);
 	Null;
+	Bool(value: Bool);
 	Int(content: String);
 	Float(content: String);
 	String(content: String);
@@ -31,29 +33,59 @@ enum Token {
 	EndOfFile;
 }
 
+class TokenExt {
+	public static function equals(self: Token, other: Token) {
+		if(Type.enumIndex(self) != Type.enumIndex(other)) {
+			return false;
+		}
+
+		return switch([self, other]) {
+			case
+				[Identifier(selfContent), Identifier(otherContent)] |
+				[Int(selfContent), Int(otherContent)] |
+				[Float(selfContent), Float(otherContent)] |
+				[String(selfContent), String(otherContent)] |
+				[Comment(selfContent), Comment(otherContent)] |
+				[MultilineComment(selfContent), MultilineComment(otherContent)] |
+				[Other(selfContent), Other(otherContent)]
+			: selfContent == otherContent;
+
+			case [Keyword(selfKeyword), Keyword(otherKeyword)]: selfKeyword == otherKeyword;
+
+			case [Bool(selfBool), Bool(otherBool)]: selfBool == otherBool;
+
+			case _: true;
+		}
+	}
+}
+
+enum LexerError {
+	UnexpectedEndOfFile;
+}
+
 enum Keyword {
 	Def;
 	Syntax;
 }
 
 enum LexifyResult {
-	Success(tokens: Array<Token>);
-	Error(errors: Array<{ error: ErrorKind, position: PositionKind }>);
+	Success(tokens: Array<Positioned<Token>>);
+	Error(errors: Array<Positioned<LexerError>>);
 }
 
 class Lexer {
 	var content: String;
-	var filePath: Null<String>;
-	var tokens: Array<Token>;
+	var fileIdentifier: Int;
+	var tokens: Array<Positioned<Token>>;
 	var currentPosition: Int;
 	var length: Int;
 	var indentStack: Array<Int>;
 
-	var errors: Array<{ error: ErrorKind, position: PositionKind }>;
+	var errors: Array<Positioned<LexerError>>;
 
-	public function new(content: String, filePath: Null<String> = null) {
+	public function new(content: String, fileIdentifier: Int) {
 		this.content = content;
-		this.filePath = filePath;
+		this.fileIdentifier = fileIdentifier;
 
 		tokens = [];
 		currentPosition = 0;
@@ -61,6 +93,27 @@ class Lexer {
 		indentStack = [0];
 
 		errors = [];
+	}
+
+	/**
+		Generates a `Position` from `start` to `end` inclusive.
+	**/
+	function makePosition(start: Int, end: Int): Position {
+		return { fileIdentifier: fileIdentifier, start: start, end: end + 1 };
+	}
+
+	/**
+		Creates a `Position` starting from `start` and ending at `currentPosition`.
+	**/
+	inline function makePositionFrom(start: Int): Position {
+		return makePosition(start, currentPosition);
+	}
+
+	/**
+		Creates a `Position` that points to a single character at `position`.
+	**/
+	inline function makeSingleCharacterPosition(position: Int): Position {
+		return makePosition(position, position + 1);
 	}
 
 	public function lexify(): LexifyResult {
@@ -75,10 +128,13 @@ class Lexer {
 		// close any remaining indents
 		while(indentStack.length > 1) {
 			indentStack.pop();
-			tokens.push(Token.DecrementIndent);
+			tokens.push({
+				value: Token.DecrementIndent,
+				position: makeSingleCharacterPosition(length)
+			});
 		}
 
-		tokens.push(Token.EndOfFile);
+		tokens.push({ value: Token.EndOfFile, position: makeSingleCharacterPosition(length) });
 		return Success(tokens);
 	}
 
@@ -131,14 +187,15 @@ class Lexer {
 		var c = peek();
 		if(c == null) {
 			errors.push({
-				error: UnexpectedEndOfFile,
-				position: PositionKind.SingleCharacter(currentPosition)
+				value: UnexpectedEndOfFile,
+				position: makeSingleCharacterPosition(currentPosition)
 			});
 			return;
 		}
 		switch(c) {
 			case " ", "\t": { handleSpace(); }
-			case "\n", "\r": { advance(); }
+			case "\r": { advance(); }
+			case "\n": { advance(); handleSpace(); }
 			case ";": { handleSingleToken(Token.Semicolon); }
 			case ":": { handleSingleToken(Token.Colon); }
 			case "(": { handleSingleToken(Token.ParenthesisOpen); }
@@ -161,7 +218,7 @@ class Lexer {
 		Pushes a single token and advances the seeker.
 	**/
 	function handleSingleToken(token: Token) {
-		tokens.push(token);
+		tokens.push({ value: token, position: makeSingleCharacterPosition(currentPosition) });
 		advance();
 	}
 
@@ -188,14 +245,20 @@ class Lexer {
 		final prev = indentStack[indentStack.length - 1];
 		if(indent > prev) {
 			indentStack.push(indent);
-			tokens.push(Token.IncrementIndent);
+			tokens.push({
+				value: Token.IncrementIndent,
+				position: makePositionFrom(start)
+			});
 		} else if(indent < prev) {
 			while(
 				indentStack.length > 0 &&
 				indentStack[indentStack.length - 1] > indent
 			) {
 				indentStack.pop();
-				tokens.push(Token.DecrementIndent);
+				tokens.push({
+					value: Token.DecrementIndent,
+					position: makePositionFrom(start)
+				});
 			}
 		}
 	}
@@ -206,16 +269,24 @@ class Lexer {
 		Should be called when `peek() == "\""`.
 	**/
 	function handleString() {
-		var start = ++currentPosition;
+		final stringStart = currentPosition;
+		advance();
+
+		final stringContentStart = currentPosition;
 		while(currentPosition < length && peek() != "\"") {
 			if(peek() == "\\") {
 				advance();
 			}
 			advance();
 		}
-		var str = content.substring(start, currentPosition);
+
+		final stringContent = content.substring(stringContentStart, currentPosition);
 		advance();
-		tokens.push(Token.String(str));
+
+		tokens.push({
+			value: Token.String(stringContent),
+			position: makePositionFrom(stringStart)
+		});
 	}
 
 	/**
@@ -226,24 +297,38 @@ class Lexer {
 	function handleComment() {
 		// Multiline comment...
 		if(peek(1) == "#" && peek(2) == "#") {
+			final commentStart = currentPosition;
 			advance(3);
-			var start = currentPosition;
+
+			final commentContentStart = currentPosition;
 			while(currentPosition < length - 2 && !(peek() == "#" && peek(1) == "#" && peek(2) == "#")) {
 				advance();
 			}
-			var str = content.substring(start, currentPosition);
+
+			final commentContent = content.substring(commentContentStart, currentPosition);
 			advance(3);
-			tokens.push(Token.MultilineComment(str));
+
+			tokens.push({
+				value: Token.MultilineComment(commentContent),
+				position: makePositionFrom(commentStart)
+			});
+
 			return;
 		}
 
 		// Single-line comment...
+		final commentStart = currentPosition;
 		advance();
-		var start = currentPosition;
+
+		final commentContentStart = currentPosition;
 		while(currentPosition < length && peek() != "\n") {
 			advance();
 		}
-		tokens.push(Token.Comment(content.substring(start, currentPosition)));
+
+		tokens.push({
+			value: Token.Comment(content.substring(commentContentStart, currentPosition)),
+			position: makePositionFrom(commentStart)
+		});
 	}
 
 	/**
@@ -251,15 +336,21 @@ class Lexer {
 	**/
 	function handleComplexToken(firstCharacter: String) {
 		if(firstCharacter == "-" && peek(1) == ">") {
-			tokens.push(Token.Arrow);
 			advance(2);
+			tokens.push({
+				value: Token.Arrow,
+				position: makePosition(currentPosition - 2, currentPosition - 1)
+			});
 		} else if(isDigit(firstCharacter)) {
 			handleNumber();
 		} else if(isIdentStart(firstCharacter)) {
 			handleIdentifierOrKeyword();
 		} else {
-			tokens.push(Token.Other(firstCharacter));
 			advance();
+			tokens.push({
+				value: Token.Other(firstCharacter),
+				position: makeSingleCharacterPosition(currentPosition - 1)
+			});
 		}
 	}
 
@@ -282,9 +373,15 @@ class Lexer {
 		if(peek() == ".") {
 			advance();
 			parseDigits();
-			tokens.push(Token.Float(content.substring(start, currentPosition)));
+			tokens.push({
+				value: Token.Float(content.substring(start, currentPosition)),
+				position: makePositionFrom(start)
+			});
 		} else {
-			tokens.push(Token.Int(content.substring(start, currentPosition)));
+			tokens.push({
+				value: Token.Int(content.substring(start, currentPosition)),
+				position: makePositionFrom(start)
+			});
 		}
 	}
 
@@ -296,18 +393,24 @@ class Lexer {
 	function handleIdentifierOrKeyword() {
 		final start = currentPosition;
 
-		// Parse identifier
 		var currentChar = peek();
 		while(currentChar != null && isIdentPart(currentChar)) {
 			advance();
 			currentChar = peek();
 		}
 
-		switch(content.substring(start, currentPosition)) {
-			case "null": tokens.push(Token.Null);
-			case "def": tokens.push(Token.Keyword(Def));
-			case "syntax": tokens.push(Token.Keyword(Syntax));
-			case identifier: tokens.push(Token.Identifier(identifier));
+		final tokenKind = switch(content.substring(start, currentPosition)) {
+			case "null": Token.Null;
+			case "true": Token.Bool(true);
+			case "false": Token.Bool(false);
+			case "def": Token.Keyword(Def);
+			case "syntax": Token.Keyword(Syntax);
+			case identifier: Token.Identifier(identifier);
 		}
+
+		tokens.push({
+			value: tokenKind,
+			position: makePositionFrom(start)
+		});
 	}
 }
