@@ -1,16 +1,10 @@
-package sillyscript.compiler;
+package sillyscript.compiler.transpiler;
 
-import sillyscript.compiler.Executor.DataOutput;
+import sillyscript.compiler.executor.DataOutput;
+import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.Position.Positioned;
 
-enum TranspilerError {
-	Placeholder;
-}
-
-enum TranspilerResult {
-	Success(content: String);
-	Error(errors: Array<Positioned<TranspilerError>>);
-}
+typedef TranspilerResult = PositionedResult<String, TranspilerError>;
 
 abstract class Transpiler {
 	var data: Positioned<DataOutput>;

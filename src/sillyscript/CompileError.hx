@@ -1,10 +1,10 @@
 package sillyscript;
 
-import sillyscript.compiler.Transpiler.TranspilerError;
-import sillyscript.compiler.Executor.ExecutorError;
-import sillyscript.compiler.Typer.TyperError;
-import sillyscript.compiler.Parser.ParserError;
-import sillyscript.compiler.Lexer.LexerError;
+import sillyscript.compiler.executor.ExecutorError;
+import sillyscript.compiler.lexer.LexerError;
+import sillyscript.compiler.parser.ParserError;
+import sillyscript.compiler.transpiler.TranspilerError;
+import sillyscript.compiler.typer.TyperError;
 
 @:using(sillyscript.CompileError.CompileErrorExt)
 enum CompileError {

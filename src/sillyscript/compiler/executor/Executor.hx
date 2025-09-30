@@ -1,23 +1,11 @@
-package sillyscript.compiler;
+package sillyscript.compiler.executor;
 
-import sillyscript.compiler.Parser.Value;
-import sillyscript.compiler.Typer.TypedAst;
+import sillyscript.compiler.executor.ExecutorError;
+import sillyscript.compiler.Result.PositionedResult;
+import sillyscript.compiler.typer.TypedAst;
 import sillyscript.Position.Positioned;
 
-enum DataOutput {
-	Value(value: Value);
-	List(items: Array<Positioned<DataOutput>>);
-	Dictionary(items: Array<Positioned<{ key: Positioned<String>, value: Positioned<DataOutput> }>>);
-}
-
-enum ExecutorResult {
-	Success(data: Positioned<DataOutput>);
-	Error(errors: Array<Positioned<ExecutorError>>);
-}
-
-enum ExecutorError {
-	Placeholder;
-}
+typedef ExecutorResult = PositionedResult<Positioned<DataOutput>, ExecutorError>;
 
 class Executor {
 	var typedAst: Positioned<TypedAst>;

@@ -1,7 +1,7 @@
 package sillyscript;
 
 import haxe.macro.Expr;
-import sillyscript.compiler.Parser.ParserError;
+import sillyscript.compiler.parser.ParserError;
 import sillyscript.Position.Positioned;
 
 macro function returnIfError(self: ExprOf<Null<Positioned<ParserError>>>): Expr {

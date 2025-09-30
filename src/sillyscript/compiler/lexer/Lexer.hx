@@ -1,77 +1,13 @@
-package sillyscript.compiler;
+package sillyscript.compiler.lexer;
 
+import sillyscript.compiler.lexer.Token;
+import sillyscript.compiler.lexer.Token.Keyword;
+import sillyscript.compiler.lexer.LexerError;
+import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.Position;
 using sillyscript.extensions.StringExt;
 
-@:using(sillyscript.compiler.Lexer.TokenExt)
-enum Token {
-	Identifier(content: String);
-	Keyword(keyword: Keyword);
-	Null;
-	Bool(value: Bool);
-	Int(content: String);
-	Float(content: String);
-	String(content: String);
-	Semicolon;
-	Colon;
-	Comma;
-	Arrow;
-	ExclamationPoint;
-	ParenthesisOpen;
-	ParenthesisClose;
-	SquiggleOpen;
-	SquiggleClose;
-	SquareOpen;
-	SquareClose;
-	TriangleOpen;
-	TriangleClose;
-	IncrementIndent;
-	DecrementIndent;
-	Comment(content: String);
-	MultilineComment(content: String);
-	Other(character: String);
-	EndOfFile;
-}
-
-class TokenExt {
-	public static function equals(self: Token, other: Token) {
-		if(Type.enumIndex(self) != Type.enumIndex(other)) {
-			return false;
-		}
-
-		return switch([self, other]) {
-			case
-				[Identifier(selfContent), Identifier(otherContent)] |
-				[Int(selfContent), Int(otherContent)] |
-				[Float(selfContent), Float(otherContent)] |
-				[String(selfContent), String(otherContent)] |
-				[Comment(selfContent), Comment(otherContent)] |
-				[MultilineComment(selfContent), MultilineComment(otherContent)] |
-				[Other(selfContent), Other(otherContent)]
-			: selfContent == otherContent;
-
-			case [Keyword(selfKeyword), Keyword(otherKeyword)]: selfKeyword == otherKeyword;
-
-			case [Bool(selfBool), Bool(otherBool)]: selfBool == otherBool;
-
-			case _: true;
-		}
-	}
-}
-
-enum LexerError {
-	UnexpectedEndOfFile;
-}
-
-enum Keyword {
-	Def;
-	Syntax;
-}
-
-enum LexifyResult {
-	Success(tokens: Array<Positioned<Token>>);
-	Error(errors: Array<Positioned<LexerError>>);
-}
+typedef LexifyResult = PositionedResult<Array<Positioned<Token>>, LexerError>;
 
 class Lexer {
 	var content: String;

@@ -1,84 +1,13 @@
-package sillyscript.compiler;
+package sillyscript.compiler.parser;
 
 import haxe.CallStack;
 import haxe.ds.Either;
-import sillyscript.compiler.Lexer.Token;
+import sillyscript.compiler.lexer.Token;
+import sillyscript.compiler.parser.ParserResult.ParseResult;
+import sillyscript.compiler.Value;
 import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Position.Positioned;
-
 using sillyscript.extensions.ArrayExt;
-
-enum Value {
-	Null;
-	Bool(value: Bool);
-	Int(content: String);
-	Float(content: String);
-	String(content: String);
-}
-
-/**
-	Untyped syntax tree.
-**/
-enum Ast {
-	Value(value: Value);
-	List(items: Array<Positioned<Ast>>);
-	Dictionary(items: Array<Positioned<{ key: Positioned<String>, value: Positioned<Ast> }>>);
-	Call(identifier: String, arguments: Array<{ name: Null<String>, value: Positioned<Ast> }>);
-}
-
-/**
-	Used to distinguish the result from a parsing function.
-**/
-@:using(sillyscript.compiler.Parser.ParseResultExt)
-enum ParseResult<T> {
-	/**
-		The value was successfully parsed and scanner advanced.
-	**/
-	Success(result: T);
-
-	/**
-		The syntax does not match what was requested to be parsed.
-
-		This check was done safely and the `currentIndex` is unchanged.
-	**/
-	NoMatch;
-
-	/**
-		There was a partial match of the requested syntax, but it is not completely valid and 
-		will result in an error.
-
-		The `currentIndex` was advanced by the offset defined by `offset`.
-	**/
-	Error(errors: Array<Positioned<ParserError>>);
-}
-
-/**
-	The functions for the `ParseResult`.
-**/
-class ParseResultExt {
-	/**
-		Maps the contents of one `ParseResult` into another.
-
-		`extraOffset` is added to the `offset` of `ErrorMatch` if it's returned.
-		`returnErrorForNoMatch` returns `ErrorMatch` if `self` is `NoMatch`.
-		`callback` converts the value from `T` to `U`. If is ONLY called if `self` is `Success`.
-	**/
-	public static function map<T, U>(
-		self: ParseResult<T>,
-		returnErrorForNoMatch: Null<Positioned<ParserError>>,
-		callback: (T) -> U
-	): ParseResult<U> {
-		return switch(self) {
-			case Success(result): Success(callback(result));
-			case NoMatch: if(returnErrorForNoMatch != null) {
-				Error([returnErrorForNoMatch]);
-			} else {
-				NoMatch;
-			}
-			case Error(error): Error(error);
-		}
-	}
-}
 
 /**
 	Used internally by `parseListOrDictionaryPostColonIdent` to track whether a list or dictionary 
@@ -88,16 +17,6 @@ enum ParseKind {
 	Unknown;
 	List;
 	Dictionary;
-}
-
-enum ParserError {
-	NoMatch;
-	Expected(token: Token);
-	ExpectedMultiple(tokens: Array<Token>);
-	ExpectedValue;
-	ExpectedListOrDictionaryEntries;
-	UnexpectedListEntryWhileParsingDictionary;
-	UnexpectedDictionaryEntryWhileParsingList;
 }
 
 /**
@@ -242,7 +161,7 @@ class Parser {
 	/**
 		Begins parsing the `inputTokens` provided in the constructor.
 	**/
-	public function parse(): ParseResult<Positioned<Ast>> {
+	public function parse(): ParseResult<Positioned<UntypedAst>> {
 		return parseListOrDictionaryPostColonIdent();
 	}
 
@@ -276,12 +195,12 @@ class Parser {
 		Parses the contents of a list or dictionary as one would expect following a colon and
 		incremented indent.
 	**/
-	function parseListOrDictionaryPostColonIdent(): ParseResult<Positioned<Ast>> {
+	function parseListOrDictionaryPostColonIdent(): ParseResult<Positioned<UntypedAst>> {
 		var kind = Unknown;
 
 		final start = currentIndex;
-		final listEntries: Array<Positioned<Ast>> = [];
-		final dictionaryEntries: Array<Positioned<{ key: Positioned<String>, value: Positioned<Ast> }>> = [];
+		final listEntries: Array<Positioned<UntypedAst>> = [];
+		final dictionaryEntries: Array<Positioned<{ key: Positioned<String>, value: Positioned<UntypedAst> }>> = [];
 		final errors: Array<Positioned<ParserError>> = [];
 
 		var c = peek();
@@ -339,8 +258,8 @@ class Parser {
 		If it cannot, it then attempts to parse: `<ast entry>` and returns `Right`.
 	**/
 	function parseListOrDictionaryEntry(): ParseResult<Either<
-		Positioned<{ key: Positioned<String>, value: Positioned<Ast> }>,
-		Positioned<Ast>
+		Positioned<{ key: Positioned<String>, value: Positioned<UntypedAst> }>,
+		Positioned<UntypedAst>
 	>> {
 		switch(parseDictionaryEntry()) {
 			case Success(result): return Success(Left(result));
@@ -356,7 +275,7 @@ class Parser {
 	**/
 	function parseDictionaryEntry(): ParseResult<Positioned<{
 		key: Positioned<String>,
-		value: Positioned<Ast>
+		value: Positioned<UntypedAst>
 	}>> {
 		final identifierToken = peekWithPosition();
 		if(identifierToken == null) return NoMatch;
@@ -387,11 +306,11 @@ class Parser {
 	}
 
 	/**
-		Parse an entry to `Ast`.
+		Parse an entry to `UntypedAst`.
 
 		If `colonExists` is `true`, a colon was parsed prior to this call.
 	**/
-	function parseAstEntry(colonExists: Bool): ParseResult<Positioned<Ast>> {
+	function parseAstEntry(colonExists: Bool): ParseResult<Positioned<UntypedAst>> {
 		final firstToken = peekWithPosition();
 		if(firstToken == null) return Error([{ value: ExpectedValue, position: here() }]);
 
@@ -446,7 +365,7 @@ class Parser {
 	/**
 		Parses the contents of call arguments after the opening parenthesis is parsed.
 	**/
-	function parseCallArgumentsPostParenthesisOpen(identifier: String): ParseResult<Positioned<Ast>> {
+	function parseCallArgumentsPostParenthesisOpen(identifier: String): ParseResult<Positioned<UntypedAst>> {
 		function parseArgument() {
 			final name = switch(peek()) {
 				case Identifier(identifier) if(peek(1) == Colon): {

@@ -1,15 +1,15 @@
 package sillyscript;
 
-import sillyscript.compiler.Transpiler.TranspilerError;
+import sillyscript.compiler.Context;
+import sillyscript.compiler.executor.Executor;
+import sillyscript.compiler.lexer.Lexer;
+import sillyscript.compiler.lexer.LexerError;
+import sillyscript.compiler.parser.Parser;
 import sillyscript.compiler.transpiler.JsonTranspiler;
-import sillyscript.compiler.Executor;
-import sillyscript.compiler.Typer;
+import sillyscript.compiler.transpiler.TranspilerError;
+import sillyscript.compiler.typer.Typer;
 import sillyscript.filesystem.FileIdentifier;
 import sillyscript.Position.Positioned;
-import sillyscript.compiler.Lexer.LexerError;
-import sillyscript.compiler.Context;
-import sillyscript.compiler.Lexer;
-import sillyscript.compiler.Parser;
 
 /**
 	The result returned from `SillyScript.compile`.

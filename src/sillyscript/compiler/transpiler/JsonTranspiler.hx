@@ -1,13 +1,8 @@
 package sillyscript.compiler.transpiler;
 
-import sillyscript.compiler.Executor.DataOutput;
+import sillyscript.compiler.executor.DataOutput;
+import sillyscript.compiler.transpiler.Transpiler.TranspilerResult;
 import sillyscript.Position.Positioned;
-import sillyscript.compiler.Transpiler.TranspilerResult;
-
-/*	Bool(value: Bool);
-	Int(content: String);
-	Float(content: String);
-	String(content: String);*/
 
 class JsonTranspiler extends Transpiler {
 	public function transpile(): TranspilerResult {

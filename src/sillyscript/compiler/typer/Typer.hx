@@ -1,37 +1,22 @@
-package sillyscript.compiler;
+package sillyscript.compiler.typer;
 
-import sillyscript.compiler.Parser.Ast;
+import sillyscript.compiler.parser.UntypedAst;
+import sillyscript.compiler.Result.PositionedResult;
+import sillyscript.compiler.typer.TyperError;
+import sillyscript.compiler.Value;
 import sillyscript.Position.Positioned;
-import sillyscript.compiler.Parser.Value;
 
-/**
-	Typed syntax tree.
-**/
-enum TypedAst {
-	Value(value: Value);
-	List(items: Array<Positioned<TypedAst>>);
-	Dictionary(items: Array<Positioned<{ key: Positioned<String>, value: Positioned<TypedAst> }>>);
-	Placeholder;
-}
-
-enum TyperError {
-	Placeholder;
-}
-
-enum TyperResult {
-	Success(typedAst: Positioned<TypedAst>);
-	Error(errors: Array<Positioned<TyperError>>);
-}
+typedef TyperResult = PositionedResult<Positioned<TypedAst>, TyperError>;
 
 class Typer {
-	var untypedAst: Positioned<Ast>;
+	var untypedAst: Positioned<UntypedAst>;
 	var context: Context;
 	var errors: Array<Positioned<TyperError>>;
 
 	/**
 		Constructor.
 	**/
-	public function new(untypedAst: Positioned<Ast>, context: Context) {
+	public function new(untypedAst: Positioned<UntypedAst>, context: Context) {
 		this.untypedAst = untypedAst;
 		this.context = context;
 
@@ -42,7 +27,7 @@ class Typer {
 		return typeAst(untypedAst);
 	}
 
-	function typeAst(ast: Positioned<Ast>): TyperResult {
+	function typeAst(ast: Positioned<UntypedAst>): TyperResult {
 		return switch(ast.value) {
 			case Value(value): {
 				Success({ value: Value(value), position: ast.position });
