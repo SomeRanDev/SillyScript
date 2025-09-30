@@ -8,15 +8,19 @@ import sillyscript.Position.Positioned;
 
 using sillyscript.extensions.ArrayExt;
 
-/**
-	Untyped syntax tree.
-**/
-enum Ast {
+enum Value {
 	Null;
 	Bool(value: Bool);
 	Int(content: String);
 	Float(content: String);
 	String(content: String);
+}
+
+/**
+	Untyped syntax tree.
+**/
+enum Ast {
+	Value(value: Value);
 	List(items: Array<Positioned<Ast>>);
 	Dictionary(items: Array<Positioned<{ key: Positioned<String>, value: Positioned<Ast> }>>);
 	Call(identifier: String, arguments: Array<{ name: Null<String>, value: Positioned<Ast> }>);
@@ -87,6 +91,7 @@ enum ParseKind {
 }
 
 enum ParserError {
+	NoMatch;
 	Expected(token: Token);
 	ExpectedMultiple(tokens: Array<Token>);
 	ExpectedValue;
@@ -402,7 +407,7 @@ class Parser {
 		if(simpleEntry != null) {
 			advance();
 			return Success({
-				value: simpleEntry,
+				value: Value(simpleEntry),
 				position: firstToken.position
 			});
 		}

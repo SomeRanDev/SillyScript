@@ -26,8 +26,7 @@ function main() {
 	final compiler = new SillyScript();
 	switch(compiler.compile(
 		input,
-		arguments.getInputFilePathRelativeTo(Sys.getCwd()),
-		"file:///" + arguments.getInputFilePath()
+		arguments.getInputFilePathRelativeTo(Sys.getCwd())
 	)) {
 		case Success(content): {
 			arguments.writeOutputContent(content);

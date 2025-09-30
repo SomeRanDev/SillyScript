@@ -1,5 +1,8 @@
 package sillyscript;
 
+import sillyscript.compiler.Transpiler.TranspilerError;
+import sillyscript.compiler.Executor.ExecutorError;
+import sillyscript.compiler.Typer.TyperError;
 import sillyscript.compiler.Parser.ParserError;
 import sillyscript.compiler.Lexer.LexerError;
 
@@ -7,6 +10,9 @@ import sillyscript.compiler.Lexer.LexerError;
 enum CompileError {
 	LexerError(error: LexerError);
 	ParserError(error: ParserError);
+	TyperError(error: TyperError);
+	ExecutorError(error: ExecutorError);
+	TranspilerError(error: TranspilerError);
 }
 
 /**
@@ -17,6 +23,9 @@ class CompileErrorExt {
 		return switch(self) {
 			case LexerError(_): "Lexer Error";
 			case ParserError(_): "Parser Error";
+			case TyperError(_): "Typing Error";
+			case ExecutorError(_): "Execution Error";
+			case TranspilerError(_): "Transpiler Error";
 		}
 	}
 
@@ -26,6 +35,9 @@ class CompileErrorExt {
 				"Unexpected end of file.";
 			}
 
+			case ParserError(NoMatch): {
+				"Unexpected content encountered that does not match SillyScript syntax.";
+			}
 			case ParserError(Expected(token)) | ParserError(ExpectedMultiple([token])): {
 				"Expected " + token;
 			}
@@ -50,6 +62,8 @@ class CompileErrorExt {
 			case ParserError(UnexpectedDictionaryEntryWhileParsingList): {
 				"Dictionary entry found while parsing list entries.";
 			}
+
+			case TyperError(_) | ExecutorError(_) | TranspilerError(_): "placeholder";
 		}
 	}
 
@@ -59,6 +73,9 @@ class CompileErrorExt {
 				"the file ended unexpectedly here";
 			}
 
+			case ParserError(NoMatch): {
+				"unexpected content encountered";
+			}
 			case ParserError(Expected(token)) | ParserError(ExpectedMultiple([token])): {
 				"expected a " + token + " here";
 			}
@@ -83,6 +100,8 @@ class CompileErrorExt {
 			case ParserError(UnexpectedDictionaryEntryWhileParsingList): {
 				"this shouldn't have a label";
 			}
+
+			case TyperError(_) | ExecutorError(_) | TranspilerError(_): "placeholder";
 		}
 	}
 }

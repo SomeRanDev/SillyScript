@@ -2,8 +2,7 @@ package sillyscript.filesystem;
 
 typedef FileInfo = {
 	name: String,
-	content: String,
-	fileLink: Null<String>
+	content: String
 };
 
 class FileIdentifier {
@@ -15,9 +14,9 @@ class FileIdentifier {
 		maxId = 0;
 	}
 
-	public function registerFile(name: String, content: String, fileLink: Null<String>): Int {
+	public function registerFile(name: String, content: String): Int {
 		final id = maxId++;
-		files.set(id, { name: name, content: content, fileLink: fileLink });
+		files.set(id, { name: name, content: content });
 		return id;
 	}
 

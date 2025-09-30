@@ -2,10 +2,10 @@
 "Test";
 false;
 false;
-test(
-	name: 123,
-	"fds"
-);
+#test(
+#	name: 123,
+#	"fds"
+#);
 :
 	1; 2;
 	3;
@@ -17,7 +17,7 @@ test(
 :
 	3; 2; 1;
 :
-	a: test("aaa");
+	a: 1; #test("aaa");
 
 ###
 syntax If:

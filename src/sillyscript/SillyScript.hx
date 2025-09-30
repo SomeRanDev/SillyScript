@@ -1,5 +1,9 @@
 package sillyscript;
 
+import sillyscript.compiler.Transpiler.TranspilerError;
+import sillyscript.compiler.transpiler.JsonTranspiler;
+import sillyscript.compiler.Executor;
+import sillyscript.compiler.Typer;
 import sillyscript.filesystem.FileIdentifier;
 import sillyscript.Position.Positioned;
 import sillyscript.compiler.Lexer.LexerError;
@@ -34,8 +38,9 @@ class SillyScript {
 
 		`fileIdentifier` is a unique `String` used to identify the file when generating errors.
 	**/
-	public function compile(input: String, fileIdentifierString: String, fileLink: Null<String> = null): CompileResult {
-		final fileId = fileIdentifier.registerFile(fileIdentifierString, input, fileLink);
+	public function compile(input: String, fileIdentifierString: String): CompileResult {
+		final fileId = fileIdentifier.registerFile(fileIdentifierString, input);
+		final context = new Context(fileId);
 
 		// Lexer
 		final lexer = new Lexer(input, fileId);
@@ -48,18 +53,54 @@ class SillyScript {
 		}
 
 		// Parser
-		final context = new Context(fileId);
 		final parser = new Parser(tokens, context);
-		switch(parser.parse()) {
-			case Success(result): trace(result);
-			case NoMatch: trace("Nothing found");
+		final untypedAst = switch(parser.parse()) {
+			case Success(result): result;
+			case NoMatch: {
+				return Error([{
+					value: ParserError(NoMatch),
+					position: { fileIdentifier: fileId, start: -1, end: -1 }
+				}]);
+			}
+			case Error(errors): {
+				return Error(errors.map(e -> ({
+					value: ParserError(e.value),
+					position: e.position
+				} : Positioned<CompileError>)));
+			}
+		}
+
+		// Typer
+		final typer = new Typer(untypedAst, context);
+		final typedAst = switch(typer.type()) {
+			case Success(typedAst): typedAst;
 			case Error(errors): return Error(errors.map(e -> ({
-				value: ParserError(e.value),
+				value: TyperError(e.value),
 				position: e.position
 			} : Positioned<CompileError>)));
 		}
 
-		return Success("");
+		// Executor
+		final executor = new Executor(typedAst, context);
+		final data = switch(executor.execute()) {
+			case Success(data): data;
+			case Error(errors): return Error(errors.map(e -> ({
+				value: ExecutorError(e.value),
+				position: e.position
+			} : Positioned<CompileError>)));
+		}
+
+		// Transpiler
+		final transpiler = new JsonTranspiler(data, context);
+		final output = switch(transpiler.transpile()) {
+			case Success(output): output;
+			case Error(errors): return Error(errors.map(e -> ({
+				value: TranspilerError(e.value),
+				position: e.position
+			} : Positioned<CompileError>)));
+		}
+
+		return Success(output);
 	}
 
 	/**

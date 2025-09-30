@@ -32,6 +32,13 @@ class Positioned<T> {
 	public function toString() {
 		return "At " + position.toString() + "\n(" + Std.string(value) + ")";
 	}
+
+	public function map<U>(callback: (T) -> U): Positioned<U> {
+		return {
+			value: callback(value),
+			position: position
+		}
+	}
 }
 
 class PositionedExt {
