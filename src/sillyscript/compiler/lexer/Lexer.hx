@@ -1,8 +1,7 @@
 package sillyscript.compiler.lexer;
 
-import sillyscript.compiler.lexer.Token;
-import sillyscript.compiler.lexer.Token.Keyword;
 import sillyscript.compiler.lexer.LexerError;
+import sillyscript.compiler.lexer.Token;
 import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.Position;
 using sillyscript.extensions.StringExt;
@@ -144,6 +143,7 @@ class Lexer {
 			case ">": { handleSingleToken(Token.TriangleClose); }
 			case ",": { handleSingleToken(Token.Comma); }
 			case "!": { handleSingleToken(Token.ExclamationPoint); }
+			case "?": { handleSingleToken(Token.QuestionMark); }
 			case "\"": { handleString(); }
 			case "#": { handleComment(); }
 			default: { handleComplexToken(c); }
@@ -175,6 +175,11 @@ class Lexer {
 		while(character == " " || character == "\t") {
 			advance();
 			character = peek();
+		}
+
+		// If the line only contains spaces, ignore it...
+		if(character == "\n" || character == "\r") {
+			return;
 		}
 
 		final indent = currentPosition - start;

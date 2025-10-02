@@ -4,6 +4,7 @@ import sillyscript.compiler.executor.ExecutorError;
 import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.compiler.typer.TypedAst;
 import sillyscript.Position.Positioned;
+using sillyscript.extensions.ArrayExt;
 
 typedef ExecutorResult = PositionedResult<Positioned<DataOutput>, ExecutorError>;
 
@@ -11,9 +12,13 @@ class Executor {
 	var typedAst: Positioned<TypedAst>;
 	var context: Context;
 
+	var argumentStack: Array<{ id: Int, arguments: Array<Positioned<TypedAst>> }>;
+
 	public function new(typedAst: Positioned<TypedAst>, context: Context) {
 		this.typedAst = typedAst;
 		this.context = context;
+
+		argumentStack = [];
 	}
 
 	public function execute(): ExecutorResult {
@@ -25,7 +30,7 @@ class Executor {
 			case Value(value): {
 				Success({ value: Value(value), position: ast.position });
 			}
-			case List(items): {
+			case List(items, scope): {
 				final typedEntries = [];
 				final errors = [];
 				for(item in items) {
@@ -40,7 +45,7 @@ class Executor {
 					Success({ value: List(typedEntries), position: ast.position });
 				}
 			}
-			case Dictionary(items): {
+			case Dictionary(items, scope): {
 				final typedEntries: Array<Positioned<{ key: Positioned<String>, value: Positioned<DataOutput> }>> = [];
 				final errors = [];
 				for(item in items) {
@@ -58,8 +63,57 @@ class Executor {
 					Success({ value: Dictionary(typedEntries), position: ast.position });
 				}
 			}
-			case Placeholder: {
-				Error([{ value: Placeholder, position: ast.position }]);
+			case DefIdentifier(typedDef): {
+				Error([{
+					value: CannotExecuteDefIndentifier,
+					position: ast.position
+				}]);
+			}
+			case DefArgumentIdentifier(typedDef, argumentIndex): {
+				var result: Null<ExecutorResult> = null;
+				for(argumentCollection in argumentStack) {
+					if(typedDef.value.id == argumentCollection.id) {
+						if(argumentIndex >= 0 && argumentIndex < argumentCollection.arguments.length) {
+							final typedAst = argumentCollection.arguments.get(argumentIndex);
+							if(typedAst != null) {
+								result = convertTypedAstToData(typedAst);
+							}
+						}
+					}
+				}
+
+				if(result != null) {
+					result;
+				} else {
+					Error([{
+						value: UnidentifiedDefArgumentIdentifier,
+						position: ast.position
+					}]);
+				}
+			}
+			case Call(positionedTypedAst, arguments): {
+				switch(positionedTypedAst.value) {
+					case DefIdentifier(typedDef): {
+						final content = typedDef.value.content;
+						if(content != null) {
+							argumentStack.push({ id: typedDef.value.id, arguments: arguments });
+							final data = convertTypedAstToData(content);
+							argumentStack.pop();
+							data;
+						} else {
+							Error([{
+								value: CannotExecuteEmptyDef,
+								position: positionedTypedAst.position
+							}]);
+						}
+					}
+					case _: {
+						Error([{
+							value: CannotCallExpression,
+							position: positionedTypedAst.position
+						}]);
+					}
+				}
 			}
 		}
 	}

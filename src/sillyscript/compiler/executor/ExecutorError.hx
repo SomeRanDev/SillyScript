@@ -1,5 +1,8 @@
 package sillyscript.compiler.executor;
 
 enum ExecutorError {
-	Placeholder;
+	CannotExecuteDefIndentifier;
+	CannotCallExpression;
+	UnidentifiedDefArgumentIdentifier;
+	CannotExecuteEmptyDef;
 }

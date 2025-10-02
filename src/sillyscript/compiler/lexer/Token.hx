@@ -19,6 +19,7 @@ enum Token {
 	Comma;
 	Arrow;
 	ExclamationPoint;
+	QuestionMark;
 	ParenthesisOpen;
 	ParenthesisClose;
 	SquiggleOpen;

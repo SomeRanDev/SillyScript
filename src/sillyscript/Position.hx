@@ -1,6 +1,5 @@
 package sillyscript;
 
-import haxe.macro.Compiler;
 import sillyscript.filesystem.FileIdentifier;
 using sillyscript.extensions.StringExt;
 
@@ -19,7 +18,7 @@ class Position {
 	}
 
 	public function toString() {
-		return fileIdentifier + " (" + start + " - " + end + ")";
+		return fileIdentifier + "(" + start + "-" + end + ")";
 	}
 }
 
@@ -30,7 +29,7 @@ class Positioned<T> {
 	public var position(default, null): Position;
 
 	public function toString() {
-		return "At " + position.toString() + "\n(" + Std.string(value) + ")";
+		return "Positioned(at=" + position.toString() + ", " + Std.string(value) + ")";
 	}
 
 	public function map<U>(callback: (T) -> U): Positioned<U> {

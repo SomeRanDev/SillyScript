@@ -1,23 +1,13 @@
-12;
-"Test";
-false;
-false;
-#test(
-#	name: 123,
-#	"fds"
-#);
-:
-	1; 2;
-	3;
-	:
-		you: "me";
-		me: "you";
-		numbers:
-			1; 2; 3;
-:
-	3; 2; 1;
-:
-	a: 1; #test("aaa");
+def myFunc(num: int) -> dict:
+	def inner(name: string, kind: int) -> dict:
+		name: name;
+		kind: kind;
+		moreData: false;
+
+	something: inner("Hello", 1);
+	somethingElse: inner("Goodbye", 2);
+
+myFunc(1);
 
 ###
 syntax If:

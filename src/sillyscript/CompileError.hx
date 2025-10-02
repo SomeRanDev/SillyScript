@@ -50,8 +50,11 @@ class CompileErrorExt {
 			case ParserError(ExpectedMultiple(tokens)): {
 				"Expected one of the following tokens: " + tokens;
 			}
-			case ParserError(ExpectedValue): {
-				"Expected a value.";
+			case ParserError(ExpectedExpression): {
+				"Expected an expression.";
+			}
+			case ParserError(ExpectedType): {
+				"Expected a type.";
 			}
 			case ParserError(ExpectedListOrDictionaryEntries): {
 				"Expected a list or dictionary entry.";
@@ -62,8 +65,34 @@ class CompileErrorExt {
 			case ParserError(UnexpectedDictionaryEntryWhileParsingList): {
 				"Dictionary entry found while parsing list entries.";
 			}
+			case ParserError(TypeCannotHaveSubtype(typeKind)): {
+				typeKind + " cannot have a subtype.";
+			}
 
-			case TyperError(_) | ExecutorError(_) | TranspilerError(_): "placeholder";
+			case TyperError(NothingWithName(name)): {
+				"There is no declaration with this name.";
+			}
+			case TyperError(MissingArgument(def, argumentIndex)): {
+				"Missing argument #" + argumentIndex + " of " + def.name + "(" + def.arguments[argumentIndex].value.name.value + ").";
+			}
+			case TyperError(CannotCallExpression): {
+				"Cannot call expression.";
+			}
+
+			case ExecutorError(CannotExecuteDefIndentifier): {
+				"Cannot convert uncalled def identifier to data.";
+			}
+			case ExecutorError(CannotCallExpression): {
+				"Cannot call expression.";
+			}
+			case ExecutorError(UnidentifiedDefArgumentIdentifier): {
+				"Unidentified def argument identifier.";
+			}
+			case ExecutorError(CannotExecuteEmptyDef): {
+				"Cannot execute def that failed to compile.";
+			}
+
+			case TyperError(_) | TranspilerError(_): "placeholder";
 		}
 	}
 
@@ -88,8 +117,11 @@ class CompileErrorExt {
 			case ParserError(ExpectedMultiple(tokens)): {
 				"expected only " + tokens + " here";
 			}
-			case ParserError(ExpectedValue): {
-				"this should be a value";
+			case ParserError(ExpectedExpression): {
+				"this should be an expression";
+			}
+			case ParserError(ExpectedType): {
+				"this should be a type";
 			}
 			case ParserError(ExpectedListOrDictionaryEntries): {
 				"this should be a list/dictionary entry";
@@ -100,8 +132,34 @@ class CompileErrorExt {
 			case ParserError(UnexpectedDictionaryEntryWhileParsingList): {
 				"this shouldn't have a label";
 			}
+			case ParserError(TypeCannotHaveSubtype(_)): {
+				"this should not have a type before it";
+			}
 
-			case TyperError(_) | ExecutorError(_) | TranspilerError(_): "placeholder";
+			case TyperError(NothingWithName(name)): {
+				name + " is undefined";
+			}
+			case TyperError(MissingArgument(def, argumentIndex)): {
+				"missing argument " + def.arguments[argumentIndex].value.name.value;
+			}
+			case TyperError(CannotCallExpression): {
+				"cannot call this expression";
+			}
+
+			case ExecutorError(CannotExecuteDefIndentifier): {
+				"this should have () after it";
+			}
+			case ExecutorError(CannotCallExpression): {
+				"cannot call this expression";
+			}
+			case ExecutorError(UnidentifiedDefArgumentIdentifier): {
+				"this identifier is undefined, but expected to be an argument in a def declaration";
+			}
+			case ExecutorError(CannotExecuteEmptyDef): {
+				"unfinished def";
+			}
+
+			case TranspilerError(_): "placeholder";
 		}
 	}
 }

@@ -1,23 +1,13 @@
 package sillyscript.compiler.parser;
 
+import sillyscript.compiler.parser.subparsers.ValueParser;
 import haxe.CallStack;
 import haxe.ds.Either;
 import sillyscript.compiler.lexer.Token;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.Value;
-import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Position.Positioned;
 using sillyscript.extensions.ArrayExt;
-
-/**
-	Used internally by `parseListOrDictionaryPostColonIdent` to track whether a list or dictionary 
-	is being parsed.
-**/
-enum ParseKind {
-	Unknown;
-	List;
-	Dictionary;
-}
 
 /**
 	Parses the untyped AST from tokens.
@@ -162,7 +152,7 @@ class Parser {
 		Begins parsing the `inputTokens` provided in the constructor.
 	**/
 	public function parse(): ParseResult<Positioned<UntypedAst>> {
-		return parseListOrDictionaryPostColonIdent();
+		return ValueParser.parseListOrDictionaryPostColonIdent(this);
 	}
 
 	/**
@@ -189,235 +179,5 @@ class Parser {
 			c = peek();
 		}
 		return currentIndex - start;
-	}
-
-	/**
-		Parses the contents of a list or dictionary as one would expect following a colon and
-		incremented indent.
-	**/
-	function parseListOrDictionaryPostColonIdent(): ParseResult<Positioned<UntypedAst>> {
-		var kind = Unknown;
-
-		final start = currentIndex;
-		final listEntries: Array<Positioned<UntypedAst>> = [];
-		final dictionaryEntries: Array<Positioned<{ key: Positioned<String>, value: Positioned<UntypedAst> }>> = [];
-		final errors: Array<Positioned<ParserError>> = [];
-
-		var c = peek();
-		while(c != DecrementIndent && c != EndOfFile) {
-			switch(parseListOrDictionaryEntry()) {
-				case Success(Left(dictionaryEntry)): {
-					if(kind == Unknown) kind = Dictionary;
-					switch(kind) {
-						case List: errors.push({
-							value: UnexpectedDictionaryEntryWhileParsingList,
-							position: dictionaryEntry.position
-						});
-						case Unknown | Dictionary: dictionaryEntries.push(dictionaryEntry);
-					}
-				}
-				case Success(Right(listEntry)): {
-					if(kind == Unknown) kind = List;
-					switch(kind) {
-						case Dictionary: errors.push({
-							value: UnexpectedListEntryWhileParsingDictionary,
-							position: listEntry.position
-						});
-						case Unknown | List: listEntries.push(listEntry);
-					}
-				}
-				case NoMatch: return NoMatch;
-				case Error(error): return Error(error);
-			}
-
-			if(peek(-1) != DecrementIndent) {
-				returnIfError(expect(Semicolon));
-			}
-
-			c = peek();
-		}
-
-		if(errors.length > 0) {
-			return Error(errors);
-		}
-
-		return Success({
-			value: switch(kind) {
-				case Unknown: List([]);
-				case List: List(listEntries);
-				case Dictionary: Dictionary(dictionaryEntries);
-			},
-			position: makePositionFrom(start)
-		});
-	}
-
-	/**
-		First attempts to parse: `<identifier>: <ast entry>`.
-		If successful, it returns `Left`.
-
-		If it cannot, it then attempts to parse: `<ast entry>` and returns `Right`.
-	**/
-	function parseListOrDictionaryEntry(): ParseResult<Either<
-		Positioned<{ key: Positioned<String>, value: Positioned<UntypedAst> }>,
-		Positioned<UntypedAst>
-	>> {
-		switch(parseDictionaryEntry()) {
-			case Success(result): return Success(Left(result));
-			case Error(error): return Error(error);
-			case _:
-		}
-
-		return parseAstEntry(false).map(null, (result) -> Either.Right(result));
-	}
-
-	/**
-		Parses the following pattern: `<identifier>: <ast entry>`.
-	**/
-	function parseDictionaryEntry(): ParseResult<Positioned<{
-		key: Positioned<String>,
-		value: Positioned<UntypedAst>
-	}>> {
-		final identifierToken = peekWithPosition();
-		if(identifierToken == null) return NoMatch;
-
-		return switch(identifierToken.value) {
-			case Identifier(content) if(peek(1) == Colon): {
-				expectOrFatal(Identifier(content));
-				expectOrFatal(Colon);
-
-				switch(parseAstEntry(true)) {
-					case Success(result): {
-						final key: Positioned<String> = {
-							value: content,
-							position: identifierToken.position
-						};
-						final dictionaryEntry = { key: key, value: result };
-						Success({
-							value: dictionaryEntry,
-							position: identifierToken.position.merge(result.position)
-						});
-					}
-					case NoMatch: Error([{ value: ExpectedValue, position: here() }]);
-					case Error(error): Error(error);
-				}
-			}
-			case _: NoMatch;
-		}
-	}
-
-	/**
-		Parse an entry to `UntypedAst`.
-
-		If `colonExists` is `true`, a colon was parsed prior to this call.
-	**/
-	function parseAstEntry(colonExists: Bool): ParseResult<Positioned<UntypedAst>> {
-		final firstToken = peekWithPosition();
-		if(firstToken == null) return Error([{ value: ExpectedValue, position: here() }]);
-
-		final simpleEntry = switch(firstToken.value) {
-			case Null: Null;
-			case Bool(value): Bool(value);
-			case Int(content): Int(content);
-			case Float(content): Float(content);
-			case String(content): String(content);
-			case _: null;
-		}
-
-		if(simpleEntry != null) {
-			advance();
-			return Success({
-				value: Value(simpleEntry),
-				position: firstToken.position
-			});
-		}
-
-		return switch(firstToken.value) {
-			case IncrementIndent if(colonExists): {
-				expectOrFatal(IncrementIndent);
-				parseListOrDictionaryPostColonIdent().map(
-					{ value: ExpectedListOrDictionaryEntries, position: here() },
-					function(result) {
-						advanceIfMatch(DecrementIndent);
-						return result;
-					}
-				);
-			}
-			case Colon if(!colonExists && peek(1) == IncrementIndent): {
-				expectOrFatal(Colon);
-				expectOrFatal(IncrementIndent);
-				parseListOrDictionaryPostColonIdent().map(
-					{ value: ExpectedListOrDictionaryEntries, position: here() },
-					function(result) {
-						advanceIfMatch(DecrementIndent);
-						return result;
-					}
-				);
-			}
-			case Identifier(identifier) if(peek(1) == ParenthesisOpen): {
-				expectOrFatal(Identifier(identifier));
-				expectOrFatal(ParenthesisOpen);
-				parseCallArgumentsPostParenthesisOpen(identifier);
-			}
-			case _: NoMatch;
-		}
-	}
-
-	/**
-		Parses the contents of call arguments after the opening parenthesis is parsed.
-	**/
-	function parseCallArgumentsPostParenthesisOpen(identifier: String): ParseResult<Positioned<UntypedAst>> {
-		function parseArgument() {
-			final name = switch(peek()) {
-				case Identifier(identifier) if(peek(1) == Colon): {
-					expectOrFatal(Identifier(identifier));
-					expectOrFatal(Colon);
-					identifier;
-				}
-				case _: null;
-			}
-
-			return parseAstEntry(name != null).map(
-				{
-					value: ExpectedValue,
-					position: here()
-				},
-				function(ast) {
-					return { name: name, value: ast };
-				}
-			);
-		}
-
-		final start = currentIndex - 1; // Including previous token (open parenthesis).
-
-		ignoreWhitespace();
-
-		final arguments = [];
-		while(peek() != ParenthesisClose) {
-			switch(parseArgument()) {
-				case Success(result): arguments.push(result);
-				case NoMatch: {}
-				case Error(error): return Error(error);
-			}
-
-			ignoreWhitespace();
-
-			switch(peek()) {
-				case Comma: expectOrFatal(Comma);
-				case ParenthesisClose: {}
-				case _: return Error([{
-					value: ExpectedMultiple([Comma, ParenthesisClose]),
-					position: here()
-				}]);
-			}
-
-			ignoreWhitespace();
-		}
-
-		expectOrFatal(ParenthesisClose);
-		
-		return Success({
-			value: Call(identifier, arguments),
-			position: makePositionFrom(start)
-		});
 	}
 }
