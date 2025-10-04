@@ -87,7 +87,6 @@ class ValueParser {
 					}
 				}
 				case NoMatch: {
-					trace(parser.peek());
 					errors.push({ value: NoMatch, position: parser.here() });
 					break;
 				}
