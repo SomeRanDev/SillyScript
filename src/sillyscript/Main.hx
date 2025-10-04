@@ -10,7 +10,7 @@ function main() {
 	final arguments = switch(Arguments.make()) {
 		case Success(arguments): arguments;
 		case Error(error): {
-			Sys.println(error.message());
+			Console.printlnFormatted(error.message(), Error);
 			return;
 		}
 	}
@@ -18,7 +18,7 @@ function main() {
 	final input = switch(arguments.getInputContent()) {
 		case Success(input): input;
 		case Error(error): {
-			Sys.println(error.message());
+			Console.printlnFormatted(error.message(), Error);
 			return;
 		}
 	}
@@ -33,8 +33,9 @@ function main() {
 		}
 		case Error(errors): {
 			for(e in errors) {
-				Console.printlnFormatted(compiler.getErrorString(e, true));
+				Console.printlnFormatted(compiler.getErrorString(e, true), Error);
 			}
+			Sys.exit(1);
 		}
 	}
 	#end
