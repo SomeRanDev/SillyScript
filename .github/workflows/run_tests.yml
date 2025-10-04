@@ -1,0 +1,47 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+
+      - name: Setup Visual Studio
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Check Haxe Version
+        run: haxe -version
+
+      - name: Install HashLink
+        run: haxelib install hashlink
+
+      - name: Install Console.hx
+        run: haxelib install console.hx
+
+      - name: Download HashLink Binaries
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: "HaxeFoundation/hashlink"
+          tag: "1.15"
+          fileName: "hashlink-1.15.0-win.zip"
+          out-file-path: "hashlink"
+          extract: true
+
+      - name: Build Executable
+        run: haxe Builder.hxml hl hashlink/hashlink-1.15.0-win
+
+      - name: Move libhl.dll next to SillyScript.exe
+        run: move hashlink/hashlink-1.15.0-win/libhl.dll libhl.dll
+
+      - name: Run Tests
+        run: haxe --run test/Test.hx SillyScript.exe test/unit_tests
