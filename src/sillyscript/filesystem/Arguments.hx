@@ -44,6 +44,8 @@ class Arguments {
 	var inputFile: File;
 	var outputFile: File;
 
+	public var dontColorErrors(default, null): Bool;
+
 	/**
 		Use this to construct an `Arguments` instance.
 	**/
@@ -62,6 +64,8 @@ class Arguments {
 		return Success({
 			inputFile: inputFile,
 			outputFile: outputFile,
+
+			dontColorErrors: args.contains("--dont-color-errors"),
 		});
 	}
 
