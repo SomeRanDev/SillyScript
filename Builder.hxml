@@ -1,0 +1,3 @@
+--class-path src
+--macro nullSafety("sillyscript", Strict)
+--run sillyscript.Builder
