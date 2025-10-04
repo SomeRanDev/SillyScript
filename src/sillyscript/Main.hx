@@ -10,7 +10,7 @@ function main() {
 	final arguments = switch(Arguments.make()) {
 		case Success(arguments): arguments;
 		case Error(error): {
-			Sys.println(error.message());
+			Sys.stderr().writeString(error.message() + "\n");
 			return;
 		}
 	}
@@ -18,7 +18,7 @@ function main() {
 	final input = switch(arguments.getInputContent()) {
 		case Success(input): input;
 		case Error(error): {
-			Sys.println(error.message());
+			Sys.stderr().writeString(error.message() + "\n");
 			return;
 		}
 	}
@@ -33,8 +33,14 @@ function main() {
 		}
 		case Error(errors): {
 			for(e in errors) {
-				Console.printlnFormatted(compiler.getErrorString(e, true));
+				final errorString = compiler.getErrorString(e, !arguments.dontColorErrors);
+				if(arguments.dontColorErrors) {
+					Sys.stderr().writeString(errorString + "\n");
+				} else {
+					Console.printlnFormatted(errorString, Error);
+				}
 			}
+			Sys.exit(1);
 		}
 	}
 	#end
