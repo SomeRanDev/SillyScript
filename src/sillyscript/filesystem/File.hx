@@ -1,7 +1,9 @@
 package sillyscript.filesystem;
 
+#if (sys || hxnodejs)
 import sys.FileSystem;
 import sys.io.File as SysFile;
+#end
 
 /**
 	Used for the result of `File.read`.
@@ -40,9 +42,14 @@ class File {
 	/**
 		Constructor. A relative or absolute path may be provided to any file.
 	**/
-	public function new(path: String) {
-		this.path = haxe.io.Path.isAbsolute(path) ? path : sys.FileSystem.absolutePath(path);
+	public function new(filePath: String) {
+		#if (sys || hxnodejs)
+		path = haxe.io.Path.isAbsolute(filePath) ? filePath : sys.FileSystem.absolutePath(filePath);
 		exists = FileSystem.exists(path);
+		#else
+		path = "";
+		exists = false;
+		#end
 	}
 
 	/**
@@ -60,7 +67,11 @@ class File {
 			return DoesNotExist;
 		}
 		return try {
+			#if (sys || hxnodejs)
 			Success(SysFile.getContent(path));
+			#else
+			Success("");
+			#end
 		} catch(_) {
 			UnknownError;
 		}
@@ -71,7 +82,9 @@ class File {
 	**/
 	public function write(content: String): FileWriteResult {
 		return try {
+			#if (sys || hxnodejs)
 			SysFile.saveContent(path, content);
+			#end
 			Success;
 		} catch(_) {
 			UnknownError;

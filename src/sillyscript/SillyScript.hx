@@ -22,6 +22,10 @@ enum CompileResult {
 /**
 	The class that manages the main SillyScript compilation behavior.
 **/
+#if js
+@:expose
+#end
+@:keep
 class SillyScript {
 	var fileIdentifier: FileIdentifier;
 
