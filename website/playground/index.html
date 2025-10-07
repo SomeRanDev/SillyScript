@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>SillyScript Playground</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+	<div class="playground">
+		<div class="toolbar">
+			<div class="brand">
+				<div class="logo">
+					<img src="Logo.png" style="max-width: 100%; max-height: 100%;"></img>
+				</div>
+				<div class="title">
+					<div class="name">SillyScript Playground</div>
+					<a class="subtitle" href="https://github.com/SomeRanDev/SillyScript">
+						https://github.com/SomeRanDev/SillyScript
+					</a>
+				</div>
+			</div>
+
+			<div class="controls">
+				<div class="kbd" title="Compile shortcut">Ctrl/Cmd + S</div>
+				<button id="compileButton" class="btn primary" onclick>
+					<img width="16" height="16" src="CompileIcon.svg"></img>
+					Compile
+				</button>
+			</div>
+		</div>
+
+		<div class="main" role="region">
+			<!-- Editor -->
+			<section class="panel">
+				<div class="panel-title">
+					<h3 id="editor-heading">Editor</h3>
+					<p class="hint">playground.silly</p>
+				</div>
+
+				<div class="editor" role="textbox">
+					<div id="editor">
+					</div>
+				</div>
+			</section>
+
+			<!-- Output/Error -->
+			<aside class="panel">
+				<div class="panel-title">
+					<h3 id="output-heading">Output</h3>
+					<p class="hint">Error count: 0</p>
+				</div>
+
+				<div class="output-box">
+					<div class="tabs">
+						<div id="tabIndicator" class="tab-background left"></div>
+						<div id="generateJsonTab" class="tab active">Generated JSON</div>
+						<div id="outputErrorsTab" class="tab">Output/Errors</div>
+					</div>
+
+					<!-- <div id="jsonOutput" class="output">
+					</div> -->
+					<div id="jsonEditorHolder" class="editor" role="textbox">
+						<div id="jsonEditor">
+						</div>
+					</div>
+					<div id="errorOutputContainer" class="output" style="display: none;">
+						<!-- TODO ADD ERRORS -->
+					</div>
+				</div>
+			</aside>
+		</div>
+	</div>
+	<script src="SillyScript.js"></script>
+	<script src="out/main.bundle.js"></script>
+</body>
+</html>

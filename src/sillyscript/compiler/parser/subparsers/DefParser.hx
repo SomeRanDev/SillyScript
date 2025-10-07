@@ -2,7 +2,7 @@ package sillyscript.compiler.parser.subparsers;
 
 import sillyscript.compiler.typer.Type;
 import sillyscript.MacroUtils.returnIfError;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.typer.Typer;
 

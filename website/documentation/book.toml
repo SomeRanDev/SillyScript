@@ -7,3 +7,5 @@ title = "SillyScript"
 
 [preprocessor]
 double_codeblocks.command = "bun scripts/DoubleCodeblocks.ts"
+
+[output.html]

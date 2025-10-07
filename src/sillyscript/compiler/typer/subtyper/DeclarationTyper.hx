@@ -4,7 +4,7 @@ import sillyscript.compiler.parser.subparsers.DefParser.UntypedDef;
 import sillyscript.compiler.parser.UntypedAst.UntypedDeclaration;
 import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.compiler.typer.subtyper.DefTyper.TypedDef;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 class DeclarationTyper {
 	public static function type(

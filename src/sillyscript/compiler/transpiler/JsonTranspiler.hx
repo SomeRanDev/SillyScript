@@ -2,7 +2,7 @@ package sillyscript.compiler.transpiler;
 
 import sillyscript.compiler.executor.DataOutput;
 import sillyscript.compiler.transpiler.Transpiler.TranspilerResult;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 class JsonTranspiler extends Transpiler {
 	public function transpile(): TranspilerResult {

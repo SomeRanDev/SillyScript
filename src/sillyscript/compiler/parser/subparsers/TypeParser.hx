@@ -2,7 +2,7 @@ package sillyscript.compiler.parser.subparsers;
 
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.typer.Type;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 using sillyscript.extensions.ArrayExt;
 
 /**

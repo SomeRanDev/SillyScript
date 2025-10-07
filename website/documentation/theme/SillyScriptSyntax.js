@@ -1,8 +1,6 @@
 (function() {
     "use strict";
 
-    console.log("FUCK ME");
-
     var e = function(e) {
         return {
             name: "SillyScript",

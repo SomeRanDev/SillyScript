@@ -1,0 +1,14 @@
+{
+	"name": "build-sillyscript-website",
+	"version": "1.0.0",
+	"main": "BuildSite.js",
+	"scripts": {
+		"start": "bun BuildSite.ts"
+	},
+	"keywords": [],
+	"author": "Maybee Rezbit (SomeRanDev)",
+	"description": "Constructs the SillyScript website.",
+	"dependencies": {
+		"fs-extra": "^11.3.2"
+	}
+}

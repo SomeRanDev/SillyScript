@@ -2,7 +2,7 @@ package sillyscript.compiler.typer;
 
 import sillyscript.compiler.parser.subparsers.DefParser.UntypedDef;
 import sillyscript.compiler.typer.subtyper.DefTyper.TypedDef;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 enum TypedDeclaration {
 	Def(def: Positioned<TypedDef>);

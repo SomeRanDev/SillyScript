@@ -2,7 +2,7 @@ package sillyscript.compiler.transpiler;
 
 import sillyscript.compiler.executor.DataOutput;
 import sillyscript.compiler.Result.PositionedResult;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 typedef TranspilerResult = PositionedResult<String, TranspilerError>;
 

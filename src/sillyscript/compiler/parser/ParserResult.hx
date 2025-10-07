@@ -1,7 +1,7 @@
 package sillyscript.compiler.parser;
 
 import sillyscript.compiler.parser.ParserError;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 /**
 	Used to distinguish the result from a parsing function.

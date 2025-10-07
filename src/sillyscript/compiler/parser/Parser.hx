@@ -6,7 +6,7 @@ import haxe.ds.Either;
 import sillyscript.compiler.lexer.Token;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.Value;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 using sillyscript.extensions.ArrayExt;
 
 /**

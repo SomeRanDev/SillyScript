@@ -1,5 +1,4 @@
-# Summary
-
+# Documentation
 - [Getting Started](./getting_started.md)
 - [Syntax](./syntax.md)
 - [Functions](./functions.md)

@@ -1,7 +1,7 @@
 package sillyscript.compiler.parser;
 
 import sillyscript.compiler.parser.subparsers.DefParser.UntypedDef;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 typedef UntypedDictionaryEntry = { key: Positioned<String>, value: Positioned<UntypedAst> };
 

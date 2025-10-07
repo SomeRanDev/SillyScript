@@ -5,7 +5,7 @@ import sillyscript.compiler.parser.UntypedAst.UntypedDictionaryEntry;
 import haxe.ds.Either;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.MacroUtils.returnIfError;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 /**
 	Used internally by `parseListOrDictionaryPostColonIdent` to track whether a list or dictionary 

@@ -1,7 +1,7 @@
 package sillyscript.compiler.executor;
 
 import sillyscript.compiler.Value;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 enum DataOutput {
 	Value(value: Value);

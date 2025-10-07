@@ -5,7 +5,7 @@ import sillyscript.compiler.typer.subtyper.DefTyper;
 import sillyscript.compiler.parser.UntypedAst;
 import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.compiler.typer.TyperError;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 typedef TyperResult = PositionedResult<Positioned<TypedAst>, TyperError>;
 

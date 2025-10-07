@@ -3,7 +3,7 @@ package sillyscript.compiler.executor;
 import sillyscript.compiler.executor.ExecutorError;
 import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.compiler.typer.TypedAst;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 using sillyscript.extensions.ArrayExt;
 
 typedef ExecutorResult = PositionedResult<Positioned<DataOutput>, ExecutorError>;

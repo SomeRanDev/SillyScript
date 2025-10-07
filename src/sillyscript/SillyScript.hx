@@ -3,13 +3,12 @@ package sillyscript;
 import sillyscript.compiler.Context;
 import sillyscript.compiler.executor.Executor;
 import sillyscript.compiler.lexer.Lexer;
-import sillyscript.compiler.lexer.LexerError;
 import sillyscript.compiler.parser.Parser;
 import sillyscript.compiler.transpiler.JsonTranspiler;
-import sillyscript.compiler.transpiler.TranspilerError;
 import sillyscript.compiler.typer.Typer;
 import sillyscript.filesystem.FileIdentifier;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
+import sillyscript.Positioned.DecorationKind;
 
 /**
 	The result returned from `SillyScript.compile`.
@@ -113,7 +112,7 @@ class SillyScript {
 		If `decorated` is `true`, it will also be beautified with colors and format syntax
 		compatible with [Console.hx](https://github.com/haxiomic/console.hx).
 	**/
-	public function getErrorString(error: Positioned<CompileError>, decorated: Bool) {
+	public function getErrorString(error: Positioned<CompileError>, decorated: DecorationKind) {
 		return error.renderErrorMessage(fileIdentifier, Std.string(error.value), decorated);
 	}
 }

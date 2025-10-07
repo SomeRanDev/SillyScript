@@ -1,6 +1,6 @@
 package sillyscript.compiler;
 
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 enum PositionedResult<ValueType, ErrorType> {
 	Success(data: ValueType);

@@ -2,7 +2,7 @@ package sillyscript.compiler.typer;
 
 import sillyscript.compiler.typer.subtyper.DefTyper.TypedDef;
 import sillyscript.compiler.typer.Scope;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 import sillyscript.compiler.Value;
 
 /**

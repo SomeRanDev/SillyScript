@@ -3,7 +3,7 @@ package sillyscript.compiler.typer.subtyper;
 import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.compiler.parser.ParserError;
 import sillyscript.compiler.parser.subparsers.DefParser.UntypedDef;
-import sillyscript.Position.Positioned;
+import sillyscript.Positioned;
 
 @:structInit
 class TypedDef {

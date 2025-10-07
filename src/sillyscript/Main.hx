@@ -1,6 +1,7 @@
 package sillyscript;
 
 import sillyscript.filesystem.Arguments;
+import sillyscript.Positioned.DecorationKind;
 
 /**
 	The main function for the compiler executable.
@@ -33,7 +34,8 @@ function main() {
 		}
 		case Error(errors): {
 			for(e in errors) {
-				final errorString = compiler.getErrorString(e, !arguments.dontColorErrors);
+				final decorationKind = arguments.dontColorErrors ? None : ConsoleHx;
+				final errorString = compiler.getErrorString(e, decorationKind);
 				if(arguments.dontColorErrors) {
 					Sys.stderr().writeString(errorString + "\n");
 				} else {

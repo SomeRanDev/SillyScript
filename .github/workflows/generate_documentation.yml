@@ -29,38 +29,70 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      # Ahaha.
+      # Access files.
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Ayyy.
+      # Prepare for submitting to Github pages.
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # It's YA boy-
+      # Install Rust for building documentation.
       - name: Install Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      # Uhh...
+      # Install MDBook for documentation.
       - name: Install MDBook
         run: cargo install mdbook
 
-      # Skinny penis.
+      # Bun used for custom step in MDBook build + running website building script.
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
+      # Haxe needed to build JS version of SillyScript for playground.
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@v1
+
+      # SillyScript dependency installed.
+      - name: Install Console.hx
+        run: haxelib install console.hx
+
+      # Build SillyScript for the web.
+      - name: Build JS version of SillyScript
+        run: haxe Builder.hxml js
+
       # Build the documentation by running build command on documentation.
       - name: Build Documentation
         run: mdbook build
-        working-directory: documentation
+        working-directory: website/documentation
+
+      # Install the npm dependencies for building the playground page.
+      - name: Get Dependencies for Building the Playground
+        run: bun install
+        working-directory: website/playground
+
+      # Build the playground by running start script.
+      - name: Build Playground
+        run: bun run start
+        working-directory: website/playground
+
+      # Install the dependencies for the website build script.
+      - name: Get Dependencies for Building the Site
+        run: bun install
+        working-directory: website
+
+      # Collect all the various site projects together into a single directory using this script.
+      - name: Build the Site
+        run: bun BuildSite.ts
+        working-directory: website
 
       # Upload result to as artifact.
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './documentation/book'
+          path: './website/main_page'
           retention-days: 1
 
       # Put dat shit on the pages.
