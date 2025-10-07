@@ -10,5 +10,8 @@
 	"description": "Constructs the SillyScript website.",
 	"dependencies": {
 		"fs-extra": "^11.3.2"
-	}
+	},
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4"
+  }
 }

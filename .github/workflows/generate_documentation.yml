@@ -82,7 +82,7 @@ jobs:
 
       # Install the dependencies for the website build script.
       - name: Get Dependencies for Building the Site
-        run: bun install
+        run: bun install --production
         working-directory: website
 
       # Collect all the various site projects together into a single directory using this script.
