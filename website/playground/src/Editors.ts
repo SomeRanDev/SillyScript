@@ -14,6 +14,8 @@ const DEFAULT_SILLY_SCRIPT_CODE = `1;
 "Test";
 false;`;
 
+const IMPORT_CODE_ERROR = "# There was an error with the shared code URL.\n# Please report if generated from the current version of playground.\n\n";
+
 export let editor: EditorView | null = null;
 export let jsonEditor: EditorView | null = null;
 
@@ -51,7 +53,13 @@ export function setupSillyScriptEditor() {
 
 	const urlParams = new URLSearchParams(window.location.search);
 	const base64Code = urlParams.get("code");
-	const initialCode = base64Code !== null ? decodeURIComponent(fromBinary(base64Code)) : DEFAULT_SILLY_SCRIPT_CODE;
+	const urlCode = base64Code !== null ? fromBinary(base64Code) : null;
+	const initialCode = urlCode !== null ? decodeURIComponent(urlCode) : DEFAULT_SILLY_SCRIPT_CODE;
+
+	let prefixCode = "";
+	if(base64Code !== null && urlCode === null) {
+		prefixCode = IMPORT_CODE_ERROR;
+	}
 
 	editor = new EditorView({
 		state: EditorState.create({
@@ -60,7 +68,7 @@ export function setupSillyScriptEditor() {
 				json(),
 				oneDark,
 			],
-			doc: initialCode,
+			doc: prefixCode + initialCode,
 		}),
 		parent: editorElement,
 	});

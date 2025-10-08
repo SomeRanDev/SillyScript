@@ -22,26 +22,36 @@ function base64ToUint8Array(base64: string): Uint8Array {
 	return bytes;
 }
 
-export function toBinary(input: string): string {
-	const length = input.length;
-	const codeUnits = new Uint16Array(length);
-	for(let i = 0; i < length; i++) {
-		codeUnits[i] = input.charCodeAt(i);
+export function toBinary(input: string): string | null {
+	try {
+		const length = input.length;
+		const codeUnits = new Uint16Array(length);
+		for(let i = 0; i < length; i++) {
+			codeUnits[i] = input.charCodeAt(i);
+		}
+		const inputBytes = new Uint8Array(codeUnits.buffer);
+		const compressed: Uint8Array = deflate(inputBytes, { level: 9 });
+		return uint8ToBase64(compressed);
+	} catch(e) {
+		console.error(e);
+		return null;
 	}
-	const inputBytes = new Uint8Array(codeUnits.buffer);
-	const compressed: Uint8Array = deflate(inputBytes, { level: 9 });
-	return uint8ToBase64(compressed);
 }
 
-export function fromBinary(encoded: string): string {
-	const compressed: Uint8Array = base64ToUint8Array(encoded);
-	const outputBytes: Uint8Array = inflate(compressed);
-	const codeUnits = new Uint16Array(outputBytes.buffer);
+export function fromBinary(encoded: string): string | null {
+	try {
+		const compressed: Uint8Array = base64ToUint8Array(encoded);
+		const outputBytes: Uint8Array = inflate(compressed);
+		const codeUnits = new Uint16Array(outputBytes.buffer);
 
-	let result = "";
-	const length = codeUnits.length;
-	for(let i = 0; i < length; i++) {
-		result += String.fromCharCode(codeUnits[i]);
+		let result = "";
+		const length = codeUnits.length;
+		for(let i = 0; i < length; i++) {
+			result += String.fromCharCode(codeUnits[i]);
+		}
+		return result;
+	} catch(e) {
+		console.error(e);
+		return null;
 	}
-	return result;
 }

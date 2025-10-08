@@ -24,11 +24,22 @@ function onShareButtonClick() {
 	const shareLinkHolder = document.getElementById("shareLinkHolder");
 	if(!shareLinkHolder || !(shareLinkHolder instanceof HTMLTextAreaElement)) return;
 
-	shareLinkHolder.value = (
-		window.location.origin +
-		window.location.pathname +
-		"?code=" + encodeURIComponent(toBinary(editor.state.doc.toString()))
-	);
+	const encodedCode = toBinary(editor.state.doc.toString());
+
+	let modalContent;
+	if(encodedCode !== null) {
+		modalContent = (
+			window.location.origin +
+			window.location.pathname +
+			"?code=" + encodeURIComponent(encodedCode)
+		);
+	} else {
+		modalContent = `There was an error generated the share code, please report this with your code at:
+
+https://github.com/SomeRanDev/SillyScript`;
+	}
+
+	shareLinkHolder.value = modalContent;
 	shareDialog.showModal();
 }
 
