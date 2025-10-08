@@ -6,6 +6,7 @@ import { closeBrackets, autocompletion, closeBracketsKeymap, completionKeymap } 
 import { lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightActiveLine, keymap, EditorView } from '@codemirror/view';
 import { json } from "@codemirror/lang-json";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { fromBinary } from "./StringEncoder";
 
 const DEFAULT_SILLY_SCRIPT_CODE = `1;
 2;
@@ -48,6 +49,10 @@ export function setupSillyScriptEditor() {
 	let editorElement = document.getElementById("editor");
 	if(!editorElement) return;
 
+	const urlParams = new URLSearchParams(window.location.search);
+	const base64Code = urlParams.get("code");
+	const initialCode = base64Code !== null ? decodeURIComponent(fromBinary(base64Code)) : DEFAULT_SILLY_SCRIPT_CODE;
+
 	editor = new EditorView({
 		state: EditorState.create({
 			extensions: [
@@ -55,7 +60,7 @@ export function setupSillyScriptEditor() {
 				json(),
 				oneDark,
 			],
-			doc: DEFAULT_SILLY_SCRIPT_CODE,
+			doc: initialCode,
 		}),
 		parent: editorElement,
 	});

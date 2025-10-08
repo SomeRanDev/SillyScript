@@ -110,7 +110,7 @@ body {
 
 .btn.ghost {
 	background: transparent;
-	border: 1px solid rgba(255, 255, 255, 0.04)
+	border: 1px solid rgba(255, 255, 255, 1.0)
 }
 
 .btn.primary {
@@ -308,4 +308,68 @@ body {
 
 #jsonOutput {
 	tab-size: 32px;
+}
+
+h2.section-label {
+	margin: 0;
+}
+
+.share-modal[open] {
+	border-radius: 12px;
+	display: flex;
+	flex-direction: column;
+	background-color: #111;
+	color: white;
+}
+
+.share-modal::backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	
+	animation: backdrop-fade 200ms ease backwards;
+	animation-direction: reverse;
+}
+
+.share-modal[open]::backdrop {
+	animation: backdrop-fade 200ms	ease forwards;
+}
+
+@keyframes backdrop-fade {
+	from {
+		background-color: transparent;
+	}
+	to{
+		background-color: rgba(0, 0, 0, 0.5);
+	}
+}
+
+.share-link {
+	width: 50vw;
+	height: 10vh;
+	padding: 12px;
+	margin: 24px;
+	font-size: medium;
+	resize: none;
+	background-color: #222;
+	color: white;
+	line-height: 1.5;
+}
+
+.share-link::selection {
+	background: rgba(255, 255, 255, 0.2);
+	color: white;
+}
+
+.share-modal-button-section {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+}
+
+.share-modal-button {
+	flex-grow: 0;
 }

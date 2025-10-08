@@ -8,6 +8,14 @@
 	<link rel="stylesheet" href="style.css" />
 </head>
 <body>
+	<dialog id="shareDialog" class="share-modal">
+		<textarea id="shareLinkHolder" class="share-link"></textarea>
+		<div class="share-modal-button-section">
+			<button id="shareDialogCopyButton" class="share-modal-button btn ghost">Copy Link</button>
+			<button id="shareDialogCloseButton" class="share-modal-button btn ghost">Close</button>
+		</div>
+	</dialog>
+
 	<div class="playground">
 		<div class="toolbar">
 			<div class="brand">
@@ -35,8 +43,11 @@
 			<!-- Editor -->
 			<section class="panel">
 				<div class="panel-title">
-					<h3 id="editor-heading">Editor</h3>
+					<h2 id="editor-heading" class="section-label">Editor</h2>
 					<p class="hint">playground.silly</p>
+					<button id="shareButton" class="btn ghost" onclick>
+						Share
+					</button>
 				</div>
 
 				<div class="editor" role="textbox">
@@ -48,7 +59,7 @@
 			<!-- Output/Error -->
 			<aside class="panel">
 				<div class="panel-title">
-					<h3 id="output-heading">Output</h3>
+					<h2 id="output-heading" class="section-label">Output</h3>
 					<p class="hint">Error count: 0</p>
 				</div>
 
