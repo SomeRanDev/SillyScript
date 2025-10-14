@@ -1,5 +1,6 @@
 package sillyscript.compiler.lexer;
 
+import sillyscript.extensions.Stack;
 import sillyscript.compiler.lexer.LexerError;
 import sillyscript.compiler.lexer.Token;
 import sillyscript.compiler.Result.PositionedResult;
@@ -14,7 +15,7 @@ class Lexer {
 	var tokens: Array<Positioned<Token>>;
 	var currentPosition: Int;
 	var length: Int;
-	var indentStack: Array<Int>;
+	var indentStack: Stack<Int>;
 
 	var errors: Array<Positioned<LexerError>>;
 
@@ -62,7 +63,7 @@ class Lexer {
 
 		// close any remaining indents
 		while(indentStack.length > 1) {
-			indentStack.pop();
+			indentStack.popTop();
 			tokens.push({
 				value: Token.DecrementIndent,
 				position: makeSingleCharacterPosition(length)
@@ -183,9 +184,9 @@ class Lexer {
 		}
 
 		final indent = currentPosition - start;
-		final prev = indentStack[indentStack.length - 1];
+		final prev = indentStack.last();
 		if(indent > prev) {
-			indentStack.push(indent);
+			indentStack.pushTop(indent);
 			tokens.push({
 				value: Token.IncrementIndent,
 				position: makePositionFrom(start)
@@ -193,9 +194,9 @@ class Lexer {
 		} else if(indent < prev) {
 			while(
 				indentStack.length > 0 &&
-				indentStack[indentStack.length - 1] > indent
+				indentStack.last() > indent
 			) {
-				indentStack.pop();
+				indentStack.popTop();
 				tokens.push({
 					value: Token.DecrementIndent,
 					position: makePositionFrom(start)
@@ -346,6 +347,7 @@ class Lexer {
 			case "false": Token.Bool(false);
 			case "def": Token.Keyword(Def);
 			case "syntax": Token.Keyword(Syntax);
+			case "pattern": Token.Keyword(Pattern);
 			case identifier: Token.Identifier(identifier);
 		}
 

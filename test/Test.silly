@@ -1,24 +1,42 @@
-def myFunc(num: int) -> dict:
-	def inner(name: string, kind: int) -> dict:
-		name: name;
-		kind: kind;
-		moreData: false;
 
-	something: inner("Hello", 1);
-	somethingElse: inner("Goodbye", 2);
 
-myFunc(1);
+def CameraMove(start: int, end: int) -> dict:
+	type: 0;
+	start: start;
+	end: end;
 
-###
+def StartAnimation(nodePath: string, animationName: string) -> dict:
+	type: 1;
+	nodePath: nodePath;
+	animationName: animationName;
+
 syntax If:
 	pattern:
-		if <condition: dict!condition>:
-			<contents: dict!action list>
+		if <condition: dict>:
+			<things: list>
 
-	## Transmutes ##
-	def transmute(condition: dict, contents: list) -> dict!action:
-		type: 2;
-		condition: condition;
-		if_true: contents;
-		if_false: null;
-###
+syntax Compare:
+	pattern:
+		<first: int> == <second: int>
+
+	def toData(first: int, second: int) -> dict:
+		type: 0; first: first; second: second;
+
+if 12 == 321:
+	CameraMove(1, 2);
+	StartAnimation("../Player", "Intro");
+	CameraMove(3, 5);
+
+
+syntax Increment:
+		pattern:
+			<number: int>--
+
+:
+	syntax Increment:
+		pattern:
+			<number: int>++
+
+	123++;
+
+123--;

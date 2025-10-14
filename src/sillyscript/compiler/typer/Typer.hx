@@ -1,19 +1,31 @@
 package sillyscript.compiler.typer;
 
-import sillyscript.compiler.typer.subtyper.DeclarationTyper;
-import sillyscript.compiler.typer.subtyper.DefTyper;
+import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxId;
 import sillyscript.compiler.parser.UntypedAst;
 import sillyscript.compiler.Result.PositionedResult;
+import sillyscript.compiler.typer.ast.Scope;
+import sillyscript.compiler.typer.ast.TypedCustomSyntaxDeclaration;
+import sillyscript.compiler.typer.subtyper.CallTyper;
+import sillyscript.compiler.typer.subtyper.CustomSyntaxExprTyper;
+import sillyscript.compiler.typer.subtyper.DeclarationTyper;
+import sillyscript.compiler.typer.TypedAst.TypedDictionaryEntry;
 import sillyscript.compiler.typer.TyperError;
+import sillyscript.extensions.Stack;
 import sillyscript.Positioned;
 
+/**
+	The resulting type used by the `Typer`.
+**/
 typedef TyperResult = PositionedResult<Positioned<TypedAst>, TyperError>;
 
+/**
+	Converts `UntypedAst` instances to `TypedAst`.
+**/
 class Typer {
 	var untypedAst: Positioned<UntypedAst>;
 	var context: Context;
 	var errors: Array<Positioned<TyperError>>;
-	var scopeStack: Array<Scope>;
+	var scopeStack: Stack<Scope>;
 
 	/**
 		Constructor.
@@ -27,22 +39,41 @@ class Typer {
 	}
 
 	public function pushScope(scope: Scope) {
-		scopeStack.push(scope);
+		scopeStack.pushTop(scope);
 	}
 
 	public function popScope() {
-		scopeStack.pop();
+		scopeStack.popTop();
 	}
 
+	/**
+		Returns the `TypedCustomSyntaxDeclaration` for the `id` `CustomSyntaxId` if it exists in 
+		this scope.
+	**/
+	public function findTypedCustomSyntaxDeclaration(id: CustomSyntaxId): Null<TypedCustomSyntaxDeclaration> {
+		for(scope in scopeStack.topToBottomIterator()) {
+			final maybeSyntax = scope.findCustomSyntax(id);
+			if(maybeSyntax != null) {
+				return maybeSyntax;
+			}
+		}
+		return null;
+	}
+
+	/**
+		Returns the `TypedAst` of the `untypedAst` passed in the constructor.
+	**/
 	public function type(): TyperResult {
 		return typeAst(untypedAst);
 	}
 
+	/**
+		Converts an `UntypedAst` to `TypedAst`.
+	**/
 	public function typeAst(ast: Positioned<UntypedAst>): TyperResult {
 		return switch(ast.value) {
 			case Identifier(name): {
-				for(i in 0...scopeStack.length) {
-					final scope = scopeStack[scopeStack.length - i - 1];
+				for(scope in scopeStack.topToBottomIterator()) {
 					switch(scope.findIdentifier(name)) {
 						case Def(def): {
 							return Success({
@@ -71,10 +102,12 @@ class Typer {
 					position: ast.position
 				});
 			}
-			case List(items, declarations): {
+			case List({
+				items: items, scope: scope
+			}): {
 				final typedEntries = [];
 				final errors = [];
-				final scope = DeclarationTyper.type(this, declarations, errors);
+				final scope = DeclarationTyper.type(this, scope.declarations, errors);
 
 				pushScope(scope);
 				for(item in items) {
@@ -94,10 +127,12 @@ class Typer {
 					});
 				}
 			}
-			case Dictionary(items, declarations): {
-				final typedEntries: Array<Positioned<{ key: Positioned<String>, value: Positioned<TypedAst> }>> = [];
+			case Dictionary({
+				items: items, scope: scope
+			}): {
+				final typedEntries: Array<Positioned<TypedDictionaryEntry>> = [];
 				final errors = [];
-				final scope = DeclarationTyper.type(this, declarations, errors);
+				final scope = DeclarationTyper.type(this, scope.declarations, errors);
 
 				pushScope(scope);
 				for(item in items) {
@@ -120,98 +155,11 @@ class Typer {
 					});
 				}
 			}
-			case Call(called, arguments): {
-				final errors = [];
-
-				final positionedTypedAst = switch(typeAst(called)) {
-					case Success(called): called;
-					case Error(itemErrors): {
-						for(e in itemErrors) errors.push(e);
-						null;
-					}
-				}
-
-				final typedNamedArguments = [];
-				final typedUnnamedArguments = [];
-				for(argument in arguments) {
-					switch(typeAst(argument.value)) {
-						case Success(called): {
-							if(argument.name == null) {
-								typedUnnamedArguments.push(called);
-							} else {
-								typedNamedArguments.push({
-									name: argument.name,
-									value: called
-								});
-							}
-						}
-						case Error(itemErrors): {
-							for(e in itemErrors) errors.push(e);
-							null;
-						}
-					}
-				}
-
-				var orderedTypedArguments: Null<Array<Positioned<TypedAst>>> = null;
-
-				switch(positionedTypedAst?.value) {
-					case DefIdentifier(def): {
-						final argumentSlots = [for(_ in 0...def.value.arguments.length) null];
-
-						for(argument in typedNamedArguments) {
-							if(argument.name != null) {
-								for(i in 0...def.value.arguments.length) {
-									if(argument.name == def.value.arguments[i].value.name.value) {
-										argumentSlots[i] = argument.value;
-									}
-								}
-							}
-						}
-
-						for(argument in typedUnnamedArguments) {
-							for(i in 0...argumentSlots.length) {
-								if(argumentSlots[i] == null) {
-									argumentSlots[i] = argument;
-									break;
-								}
-							}
-						}
-
-						orderedTypedArguments = [];
-						var missingArgument = -1;
-						for(i in 0...argumentSlots.length) {
-							final a = argumentSlots[i];
-							if(a == null) {
-								missingArgument = i;
-								break;
-							} else {
-								orderedTypedArguments.push(a);
-							}
-						}
-
-						if(missingArgument >= 0) {
-							errors.push({
-								value: MissingArgument(def.value, missingArgument),
-								position: ast.position
-							});
-						}
-					}
-					case _: {
-						errors.push({
-							value: CannotCallExpression,
-							position: ast.position
-						});
-					}
-				}
-
-				if(positionedTypedAst != null && orderedTypedArguments != null && errors.length == 0) {
-					Success({
-						value: Call(positionedTypedAst, orderedTypedArguments),
-						position: ast.position
-					});
-				} else {
-					Error(errors);
-				}
+			case Call(calledAst, arguments): {
+				CallTyper.type(this, ast, calledAst, arguments);
+			}
+			case CustomSyntax(candidates, expressions): {
+				CustomSyntaxExprTyper.type(this, ast, candidates, expressions);
 			}
 		}
 	}

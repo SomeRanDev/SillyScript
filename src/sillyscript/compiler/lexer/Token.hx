@@ -3,6 +3,7 @@ package sillyscript.compiler.lexer;
 enum Keyword {
 	Def;
 	Syntax;
+	Pattern;
 }
 
 @:using(sillyscript.compiler.lexer.Token.TokenExt)

@@ -1,29 +1,18 @@
 package sillyscript.compiler.parser.subparsers;
 
-import sillyscript.compiler.typer.Type;
+import sillyscript.compiler.parser.UntypedAst.UntypedDefDeclaration;
+import sillyscript.compiler.typer.SillyType;
 import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Positioned;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.typer.Typer;
 
-@:structInit
-class UntypedDef {
-	public var name(default, null): String;
-	public var arguments(default, null): Array<Positioned<{ name:Positioned<String>, type:Positioned<Type> }>>;
-	public var returnType(default, null): Positioned<Type>;
-	public var content(default, null): Positioned<UntypedAst>;
-
-	public function toString() {
-		return '{ name: $name, arguments: $arguments, returnType: $returnType, content: $content }';
-	}
-}
-
 /**
 	Handles the parsing of `def` declarations.
 **/
 @:access(sillyscript.compiler.parser.Parser)
-class DefParser {
-	public static function parseDef(parser: Parser): ParseResult<Positioned<UntypedDef>> {
+class DefDeclParser {
+	public static function parseDef(parser: Parser): ParseResult<Positioned<UntypedDefDeclaration>> {
 		final start = parser.currentIndex;
 
 		switch(parser.peek()) {
@@ -85,7 +74,7 @@ class DefParser {
 		returnIfError(parser.expect(Colon));
 		returnIfError(parser.expect(IncrementIndent));
 
-		final content = switch(ValueParser.parseListOrDictionaryPostColonIdent(parser)) {
+		final content = switch(ExpressionParser.parseListOrDictionaryPostColonIdent(parser)) {
 			case Success(result): result;
 			case NoMatch: return Error([{ value: ExpectedListOrDictionaryEntries, position: parser.here() }]);
 			case Error(errors): return Error(errors);
@@ -106,7 +95,7 @@ class DefParser {
 
 	static function parseArgument(parser: Parser): ParseResult<Positioned<{
 		name: Positioned<String>,
-		type: Positioned<Type>
+		type: Positioned<SillyType>
 	}>> {
 		final tokenWithPosition = parser.peekWithPosition();
 		if(tokenWithPosition == null) return NoMatch;

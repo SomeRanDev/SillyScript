@@ -16,7 +16,8 @@ function main() {
 	switch(args[0].toLowerCase()) {
 		case "js": js();
 		case "nodejs": nodejs();
-		case "hl": hl(args);
+		case "hl": hl();
+		case "c": c(args);
 		case other: {
 			Sys.println("Unknown target: " + other);
 			help();
@@ -31,8 +32,11 @@ function help() {
 	sb.add(" ▹ haxe Builder.hxml js\n");
 	sb.add(" ▹ haxe Builder.hxml nodejs\n");
 	sb.add("\n");
+	sb.add("Build HashLink binary\n");
+	sb.add(" ▹ haxe Builder.hxml hl\n");
+	sb.add("\n");
 	sb.add("Build native executable with Hashlink/C\n");
-	sb.add(" ▹ haxe Builder.hxml hl <hl_path>\n");
+	sb.add(" ▹ haxe Builder.hxml c <hl_path>\n");
 	Sys.println(sb.toString());
 }
 
@@ -57,7 +61,12 @@ function nodejs() {
 	Sys.println("Successfully generated for JavaScript: ./out/SillyScript.js");
 }
 
-function hl(args: Array<String>) {
+function hl() {
+	run("haxe", ["Compile.hxml", "-hl", "out/SillyScript.hl"]);
+	Sys.println("Successfully generated for HashLink: ./out/SillyScript.hl");
+}
+
+function c(args: Array<String>) {
 	// Get path to Hashlink installation
 	if(args.length < 2) {
 		Sys.println("Expected path to Hashlink binary release for hl target.\nhttps://hashlink.haxe.org/#download");

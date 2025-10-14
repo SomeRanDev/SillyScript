@@ -1,8 +1,11 @@
 package sillyscript.compiler.parser;
 
-import sillyscript.compiler.typer.Type.TypeKind;
+import sillyscript.compiler.typer.SillyTypeKind;
 import sillyscript.compiler.lexer.Token;
 
+/**
+	All the possible errors that can occur during parsing.
+**/
 enum ParserError {
 	NoMatch;
 	Expected(token: Token);
@@ -10,7 +13,8 @@ enum ParserError {
 	ExpectedExpression;
 	ExpectedType;
 	ExpectedListOrDictionaryEntries;
+	UnexpectedEndOfTokens;
 	UnexpectedListEntryWhileParsingDictionary;
 	UnexpectedDictionaryEntryWhileParsingList;
-	TypeCannotHaveSubtype(typeKind: TypeKind);
+	TypeCannotHaveSubtype(typeKind: SillyTypeKind);
 }

@@ -1,6 +1,6 @@
 package sillyscript.compiler.parser;
 
-import sillyscript.compiler.parser.subparsers.ValueParser;
+import sillyscript.compiler.parser.subparsers.ExpressionParser;
 import haxe.CallStack;
 import haxe.ds.Either;
 import sillyscript.compiler.lexer.Token;
@@ -8,6 +8,10 @@ import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.Value;
 import sillyscript.Positioned;
 using sillyscript.extensions.ArrayExt;
+
+typedef ParserState = {
+	index: Int,
+}
 
 /**
 	Parses the untyped AST from tokens.
@@ -37,6 +41,23 @@ class Parser {
 	}
 
 	/**
+		Get the current state of the parser.
+	**/
+	public function getState(): ParserState {
+		return {
+			index: currentIndex
+		};
+	}
+
+	/**
+		Sets the state of the parser to a previous state.
+	**/
+	public function revertToState(oldState: ParserState) {
+		currentIndex = oldState.index;
+	}
+
+
+	/**
 		Generates a `Position` from `start` to `end` inclusive.
 	**/
 	function makePosition(start: Int, end: Int): Position {
@@ -54,6 +75,13 @@ class Parser {
 	**/
 	inline function makePositionFrom(start: Int): Position {
 		return makePosition(start, currentIndex);
+	}
+
+	/**
+		Creates a `Position` starting from state obtained from `getState`.
+	**/
+	inline function makePositionFromState(state: ParserState): Position {
+		return makePosition(state.index, currentIndex);
 	}
 
 	/**
@@ -80,7 +108,7 @@ class Parser {
 
 		`offset` can be defined to check ahead or behind.
 	**/
-	inline function peek(offset: Int = 0): Null<Token> {
+	public inline function peek(offset: Int = 0): Null<Token> {
 		final index = currentIndex + offset;
 		return if(index >= 0 && index < inputTokens.length) {
 			inputTokens.get(index)?.value;
@@ -106,7 +134,7 @@ class Parser {
 	/**
 		Advances the `currentIndex` by `n`.
 	**/
-	inline function advance(n: Int = 1) {
+	public inline function advance(n: Int = 1) {
 		currentIndex += n;
 	}
 
@@ -143,7 +171,8 @@ class Parser {
 		if(t != null && t.equals(token)) {
 			advance();
 		} else {
-			trace(CallStack.toString(CallStack.callStack()));
+			final callstack = CallStack.toString(CallStack.callStack());
+			#if (sys || hxnodejs) Sys.println #else trace #end(callstack);
 			throw "Unexpected token encountered. This is an error, please report!";
 		}
 	}
@@ -152,7 +181,7 @@ class Parser {
 		Begins parsing the `inputTokens` provided in the constructor.
 	**/
 	public function parse(): ParseResult<Positioned<UntypedAst>> {
-		return ValueParser.parseListOrDictionaryPostColonIdent(this);
+		return ExpressionParser.parseListOrDictionaryPostColonIdent(this);
 	}
 
 	/**

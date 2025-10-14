@@ -59,6 +59,9 @@ class CompileErrorExt {
 			case ParserError(ExpectedListOrDictionaryEntries): {
 				"Expected a list or dictionary entry.";
 			}
+			case ParserError(UnexpectedEndOfTokens): {
+				"Unexpected end of token feed.";
+			}
 			case ParserError(UnexpectedListEntryWhileParsingDictionary): {
 				"List entry found while parsing dictionary entries.";
 			}
@@ -69,6 +72,9 @@ class CompileErrorExt {
 				typeKind + " cannot have a subtype.";
 			}
 
+			case TyperError(CompilerError(_)): {
+				"This error should not be possible. Please report in the SillyScript repo!";
+			}
 			case TyperError(NothingWithName(name)): {
 				"There is no declaration with this name.";
 			}
@@ -78,8 +84,35 @@ class CompileErrorExt {
 			case TyperError(CannotCallExpression): {
 				"Cannot call expression.";
 			}
+			case TyperError(WrongType): {
+				"A value of this type cannot be passed to that type.";
+			}
+			case TyperError(WrongRole): {
+				"Cannot pass type with different role.";
+			}
+			case TyperError(CannotPassNullableTypeToNonNullable): {
+				"Cannot pass value of nullable type to non-nullable type.";
+			}
+			case TyperError(InconsistentTypeBetweenSyntaxTemplates): {
+				"Inconsistent type between expression inputs of same name in different syntax templates.";
+			}
+			case TyperError(CannotCall(type)): {
+				"Cannot call instances of type " + type.toString() + ".";
+			}
+			case TyperError(AmbiguousCustomSyntaxCandidates(_)): {
+				"Multiple custom syntax declarations can match this syntax.";
+			}
+			case TyperError(InvalidTypesForCustomSyntax(_)): {
+				"The types used on this custom syntax do not match the input types it requires.";
+			}
+			case TyperError(InvalidTypesForMultipleCustomSyntaxCandidates(_)): {
+				"There are multiple candidates for this custom syntax, but none match the types of the expressions provided.";
+			}
+			case TyperError(TODO(message)): {
+				"TODO: implement this error message.";
+			}
 
-			case ExecutorError(CannotExecuteDefIndentifier): {
+			case ExecutorError(CannotExecuteDefIdentifier): {
 				"Cannot convert uncalled def identifier to data.";
 			}
 			case ExecutorError(CannotCallExpression): {
@@ -126,8 +159,11 @@ class CompileErrorExt {
 			case ParserError(ExpectedListOrDictionaryEntries): {
 				"this should be a list/dictionary entry";
 			}
+			case ParserError(UnexpectedEndOfTokens): {
+				"this should not be possible, please report";
+			}
 			case ParserError(UnexpectedListEntryWhileParsingDictionary): {
-				"this should have label (MYLABEL: ...)";
+				"this should have label (MY_LABEL: ...)";
 			}
 			case ParserError(UnexpectedDictionaryEntryWhileParsingList): {
 				"this shouldn't have a label";
@@ -136,6 +172,9 @@ class CompileErrorExt {
 				"this should not have a type before it";
 			}
 
+			case TyperError(CompilerError(message)): {
+				message;
+			}
 			case TyperError(NothingWithName(name)): {
 				name + " is undefined";
 			}
@@ -145,8 +184,35 @@ class CompileErrorExt {
 			case TyperError(CannotCallExpression): {
 				"cannot call this expression";
 			}
+			case TyperError(WrongType): {
+				"these types are not the same";
+			}
+			case TyperError(WrongRole): {
+				"these types have different roles";
+			}
+			case TyperError(CannotPassNullableTypeToNonNullable): {
+				"this value might be null, but it is being passed to non-nullable type";
+			}
+			case TyperError(InconsistentTypeBetweenSyntaxTemplates): {
+				"this must have the same type in all syntax templates";
+			}
+			case TyperError(CannotCall(type)): {
+				"cannot call " + type.toString();
+			}
+			case TyperError(AmbiguousCustomSyntaxCandidates(names)): {
+				"this could be any of the following custom syntaxes: " + names.join(", ");
+			}
+			case TyperError(InvalidTypesForCustomSyntax(_)): {
+				"invalid types for custom syntax";
+			}
+			case TyperError(InvalidTypesForMultipleCustomSyntaxCandidates(syntaxes)): {
+				"invalid types for all of the following custom syntaxes: " + syntaxes.map(s -> s.name.value).join(", ");
+			}
+			case TyperError(TODO(message)): {
+				message;
+			}
 
-			case ExecutorError(CannotExecuteDefIndentifier): {
+			case ExecutorError(CannotExecuteDefIdentifier): {
 				"this should have () after it";
 			}
 			case ExecutorError(CannotCallExpression): {

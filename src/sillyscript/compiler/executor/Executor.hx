@@ -1,5 +1,6 @@
 package sillyscript.compiler.executor;
 
+import sillyscript.extensions.Stack;
 import sillyscript.compiler.executor.ExecutorError;
 import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.compiler.typer.TypedAst;
@@ -12,7 +13,7 @@ class Executor {
 	var typedAst: Positioned<TypedAst>;
 	var context: Context;
 
-	var argumentStack: Array<{ id: Int, arguments: Array<Positioned<TypedAst>> }>;
+	var argumentStack: Stack<{ id: Int, arguments: Array<Positioned<TypedAst>> }>;
 
 	public function new(typedAst: Positioned<TypedAst>, context: Context) {
 		this.typedAst = typedAst;
@@ -65,13 +66,13 @@ class Executor {
 			}
 			case DefIdentifier(typedDef): {
 				Error([{
-					value: CannotExecuteDefIndentifier,
+					value: CannotExecuteDefIdentifier,
 					position: ast.position
 				}]);
 			}
 			case DefArgumentIdentifier(typedDef, argumentIndex): {
 				var result: Null<ExecutorResult> = null;
-				for(argumentCollection in argumentStack) {
+				for(argumentCollection in argumentStack.bottomToTopIterator()) {
 					if(typedDef.value.id == argumentCollection.id) {
 						if(argumentIndex >= 0 && argumentIndex < argumentCollection.arguments.length) {
 							final typedAst = argumentCollection.arguments.get(argumentIndex);
@@ -96,9 +97,9 @@ class Executor {
 					case DefIdentifier(typedDef): {
 						final content = typedDef.value.content;
 						if(content != null) {
-							argumentStack.push({ id: typedDef.value.id, arguments: arguments });
+							argumentStack.pushTop({ id: typedDef.value.id, arguments: arguments });
 							final data = convertTypedAstToData(content);
-							argumentStack.pop();
+							argumentStack.popTop();
 							data;
 						} else {
 							Error([{
@@ -113,6 +114,34 @@ class Executor {
 							position: positionedTypedAst.position
 						}]);
 					}
+				}
+			}
+			case CustomSyntax(customSyntax, expressions): {
+				final typedEntries: Array<Positioned<{
+					key: Positioned<String>,
+					value: Positioned<DataOutput>
+				}>> = [];
+				final errors = [];
+				for(expression in expressions) {
+					switch(convertTypedAstToData(expression.value)) {
+						case Success(typedAst): typedEntries.push({
+							value: {
+								key: expression.key,
+								value: typedAst
+							},
+							position: expression.value.position
+						});
+						case Error(itemErrors): {
+							for(e in itemErrors) {
+								errors.push(e);
+							}
+						}
+					}
+				}
+				if(errors.length > 0) {
+					Error(errors);
+				} else {
+					Success({ value: Dictionary(typedEntries), position: ast.position });
 				}
 			}
 		}

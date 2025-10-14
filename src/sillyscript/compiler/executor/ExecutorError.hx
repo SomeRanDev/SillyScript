@@ -1,7 +1,10 @@
 package sillyscript.compiler.executor;
 
+/**
+	All the possible errors that can occur during execution.
+**/
 enum ExecutorError {
-	CannotExecuteDefIndentifier;
+	CannotExecuteDefIdentifier;
 	CannotCallExpression;
 	UnidentifiedDefArgumentIdentifier;
 	CannotExecuteEmptyDef;

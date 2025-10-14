@@ -1,7 +1,8 @@
 package sillyscript.compiler.parser.subparsers;
 
+import sillyscript.compiler.typer.SillyTypeKind;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
-import sillyscript.compiler.typer.Type;
+import sillyscript.compiler.typer.SillyType;
 import sillyscript.Positioned;
 using sillyscript.extensions.ArrayExt;
 
@@ -10,8 +11,11 @@ using sillyscript.extensions.ArrayExt;
 **/
 @:access(sillyscript.compiler.parser.Parser)
 class TypeParser {
-	public static function parseType(parser: Parser): ParseResult<Positioned<Type>> {
-		final types: Array<Positioned<Type>> = [];
+	/**
+		Parses an entire SillyScript type.
+	**/
+	public static function parseType(parser: Parser): ParseResult<Positioned<SillyType>> {
+		final types: Array<Positioned<SillyType>> = [];
 		while(true) {
 			switch(parseTypeNameAndSuffixes(parser)) {
 				case Success(result): types.push(result);
@@ -60,7 +64,10 @@ class TypeParser {
 		}
 	}
 
-	static function parseTypeNameAndSuffixes(parser: Parser): ParseResult<Positioned<Type>> {
+	/**
+		Parses the type name, its role, and whether it's nullable (has `?` at end).
+	**/
+	static function parseTypeNameAndSuffixes(parser: Parser): ParseResult<Positioned<SillyType>> {
 		final start = parser.currentIndex;
 
 		final kind = switch(parseTypeName(parser)) {
@@ -102,7 +109,7 @@ class TypeParser {
 		});
 	}
 
-	static function parseTypeName(parser: Parser): ParseResult<Positioned<TypeKind>> {
+ 	static function parseTypeName(parser: Parser): ParseResult<Positioned<SillyTypeKind>> {
 		final peekToken = parser.peekWithPosition();
 		if(peekToken == null) return NoMatch;
 
@@ -117,8 +124,8 @@ class TypeParser {
 			case "int": Int;
 			case "float": Float;
 			case "string": String;
-			case "list": List(Type.PLACEHOLDER);
-			case "dict": Dictionary(Type.PLACEHOLDER);
+			case "list": List(SillyType.ANY);
+			case "dict": Dictionary(SillyType.ANY);
 			case _: return NoMatch;
 		}
 

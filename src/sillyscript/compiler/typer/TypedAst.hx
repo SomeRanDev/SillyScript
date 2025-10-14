@@ -1,18 +1,25 @@
 package sillyscript.compiler.typer;
 
-import sillyscript.compiler.typer.subtyper.DefTyper.TypedDef;
-import sillyscript.compiler.typer.Scope;
-import sillyscript.Positioned;
+import sillyscript.compiler.typer.ast.Scope;
+import sillyscript.compiler.typer.ast.TypedCustomSyntaxDeclaration;
+import sillyscript.compiler.typer.ast.TypedDef;
 import sillyscript.compiler.Value;
+import sillyscript.Positioned;
 
 /**
-	Typed syntax tree.
+	A pairing of a name and a typed AST expression.
+**/
+typedef TypedDictionaryEntry = { key: Positioned<String>, value: Positioned<TypedAst> };
+
+/**
+	The AST of the SillyScript contents post-typing.
 **/
 enum TypedAst {
 	Value(value: Value);
 	List(items: Array<Positioned<TypedAst>>, scope: Scope);
-	Dictionary(items: Array<Positioned<{ key: Positioned<String>, value: Positioned<TypedAst> }>>, scope: Scope);
+	Dictionary(items: Array<Positioned<TypedDictionaryEntry>>, scope: Scope);
 	DefIdentifier(typedDef: Positioned<TypedDef>);
 	DefArgumentIdentifier(typedDef: Positioned<TypedDef>, argumentIndex: Int);
 	Call(calledAst: Positioned<TypedAst>, arguments: Array<Positioned<TypedAst>>);
+	CustomSyntax(customSyntax: TypedCustomSyntaxDeclaration, expressions: Array<TypedDictionaryEntry>);
 }

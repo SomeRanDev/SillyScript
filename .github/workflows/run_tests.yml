@@ -38,7 +38,7 @@ jobs:
           extract: true
 
       - name: Build Executable
-        run: haxe Builder.hxml hl hashlink/hashlink-1.15.0-win
+        run: haxe Builder.hxml c hashlink/hashlink-1.15.0-win
 
       - name: Move libhl.dll next to SillyScript.exe
         run: move hashlink/hashlink-1.15.0-win/libhl.dll libhl.dll
