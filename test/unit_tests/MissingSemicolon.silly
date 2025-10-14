@@ -1,10 +1,9 @@
 ### error
 Parser Error: Expected Semicolon
  --> test/unit_tests/MissingSemicolon.silly
-11 | 2
-12 | 3;
+10 | 2
+11 | 3;
      ^ expected a Semicolon here
-13 |
 ###
 
 1;

@@ -135,7 +135,7 @@ inline function generateHeaderRegex(): EReg {
 	Extracts the header content from a single-file SillyScript test.
 **/
 function extractHeaderContent(sillyScriptPath: String): Header {
-	final originalContent = File.getContent(sillyScriptPath);
+	final originalContent = cleanupContent(File.getContent(sillyScriptPath));
 	final re = generateHeaderRegex();
 	return if(re.match(originalContent)) {
 		final contents = re.matched(2);
@@ -213,7 +213,7 @@ function runTests(args: Args) {
 				Sys.println(testEntry + " has been updated.");
 			}
 			case TestSuccessfulButNoExpectedOutput: {
-				error(testEntry + " successfully compiled, but there's no ExpectedOutput.json.");
+				error(testEntry + " successfully compiled, but there's no " + (isSingleFileTest ? "expected output header" : "ExpectedOutput.json") + ".");
 			}
 			case TestSuccessfulButNoOutputJson: {
 				error(testEntry + " successfully compiled, but didn't generate an Output.json.");
@@ -222,10 +222,10 @@ function runTests(args: Args) {
 				error(testEntry + " successfully compiled, but doesn't match the intended output:\n" + output);
 			}
 			case TestFailedButNoExpectedError(stderrOutput): {
-				error(testEntry + " failed, but there's no ExpectedError.txt.\n" + stderrOutput);
+				error(testEntry + " failed, but there's no " + (isSingleFileTest ? "expected error header" : "ExpectedError.txt") + ".\n" + stderrOutput);
 			}
 			case TestFailedButDoesntMatch(newErrorOutput): {
-				error(testEntry + " failed, but doesn't match the ExpectedError.txt:\n" + newErrorOutput);
+				error(testEntry + " failed, but doesn't match the intended error:\n" + newErrorOutput);
 			}
 		}
 	}
