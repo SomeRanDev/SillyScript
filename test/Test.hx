@@ -128,7 +128,7 @@ function validateArguments(): Null<Args> {
 	The regular expression used to parse the header for a single-file SillyScript test.
 **/
 inline function generateHeaderRegex(): EReg {
-	return ~/^###[ \t]*(output|error)((.(?!^###$))+.)###\n/s;
+	return ~/^###[ \t]*(output|error)((.(?!^###$))+.)###\n\n/s;
 }
 
 /**
@@ -163,7 +163,7 @@ function setHeaderContent(sillyScriptPath: String, content: String, kind: String
 			originalContent;
 		}
 	}
-	final finalContent = "### " + kind + "\n" + content + "\n###\n" + code;
+	final finalContent = "### " + kind + "\n" + content + "\n###\n\n" + code;
 	File.saveContent(sillyScriptPath, finalContent);
 }
 
@@ -196,7 +196,12 @@ function runTests(args: Args) {
 				Sys.println(testEntry + " has been updated.");
 			}
 			case TestSuccessfulButNoExpectedOutput if(args.updateIntended): {
-				final output = File.getContent(Path.join([path, "Output.json"]));
+				final outputJsonPath = if(isSingleFileTest) {
+					Path.join([args.tests, "Output.json"]);
+				} else {
+					Path.join([path, "Output.json"]);
+				};
+				final output = File.getContent(outputJsonPath);
 				if(isSingleFileTest) {
 					setHeaderContent(path, cleanupContent(output), "output");
 				} else {

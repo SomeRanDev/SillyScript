@@ -1,0 +1,26 @@
+### output
+[
+	{
+		"data": 321
+	},
+	{
+		"data": 123
+	},
+	{
+		"data": [
+			123
+		]
+	}
+]
+###
+
+syntax Dead:
+	pattern:
+		💀<data: int>💀
+
+def GetNum() -> int:
+	123;
+
+💀321💀;
+💀123💀;
+💀GetNum()💀;

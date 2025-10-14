@@ -1,0 +1,13 @@
+### error
+Parser Error: Expected Arrow
+ --> test/unit_tests/ExpectedArrow.silly
+ 9 | 
+10 | def Something():
+                    ^ expected a Arrow here
+11 | 	123;
+###
+
+def Something():
+	123;
+
+Something();

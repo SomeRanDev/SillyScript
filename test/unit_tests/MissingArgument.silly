@@ -1,0 +1,14 @@
+### error
+Typing Error: Missing argument #2 of Something(s).
+ --> test/unit_tests/MissingArgument.silly
+13 | 
+14 | Something(123);
+              ^^^^^^ missing argument s
+15 |
+###
+
+def Something(num: int, s: string) -> list:
+	num;
+	s;
+
+Something(123);

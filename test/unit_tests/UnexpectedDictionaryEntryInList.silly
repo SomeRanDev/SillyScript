@@ -1,6 +1,6 @@
 ### error
 Parser Error: Dictionary entry found while parsing list entries.
- --> test/unit_tests/UnexpectedDictionaryEntryWhileParsingList.silly
+ --> test/unit_tests/UnexpectedDictionaryEntryInList.silly
 10 | 2;
 11 | number: 3;
      ^^^^^^^^^ this shouldn't have a label

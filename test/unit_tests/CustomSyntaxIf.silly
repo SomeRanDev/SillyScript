@@ -1,0 +1,54 @@
+### output
+[
+	{
+		"condition": {
+			"first": 12,
+			"second": 321
+		},
+		"things": [
+			{
+				"type": 0,
+				"start": 1,
+				"end": 2
+			},
+			{
+				"type": 1,
+				"nodePath": "../Player",
+				"animationName": "Intro"
+			},
+			{
+				"type": 0,
+				"start": 3,
+				"end": 5
+			}
+		]
+	}
+]
+###
+
+def CameraMove(start: int, end: int) -> dict!action:
+	type: 0;
+	start: start;
+	end: end;
+
+def StartAnimation(nodePath: string, animationName: string) -> dict!action:
+	type: 1;
+	nodePath: nodePath;
+	animationName: animationName;
+
+syntax If:
+	pattern:
+		if <condition: dict>:
+			<things: dict!action list>
+
+syntax Compare:
+	pattern:
+		<first: int> == <second: int>
+
+	def toData(first: int, second: int) -> dict!bool:
+		type: 0; first: first; second: second;
+
+if 12 == 321:
+	CameraMove(1, 2);
+	StartAnimation("../Player", "Intro");
+	CameraMove(3, 5);

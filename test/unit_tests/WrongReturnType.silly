@@ -1,0 +1,14 @@
+### output
+[
+	[
+		123,
+		"Goodbye"
+	]
+]
+###
+
+def Something(num: int, s: string) -> dict:
+	num;
+	s;
+
+Something(123, "Goodbye");

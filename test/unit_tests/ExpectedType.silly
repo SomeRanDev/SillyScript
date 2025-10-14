@@ -1,0 +1,13 @@
+### error
+Parser Error: Expected a type.
+ --> test/unit_tests/ExpectedType.silly
+ 9 | 
+10 | def Something() -> :
+                        ^ this should be a type
+11 | 	123;
+###
+
+def Something() -> :
+	123;
+
+Something();

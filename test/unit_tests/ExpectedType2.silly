@@ -1,0 +1,20 @@
+### error
+Parser Error: Expected a type.
+ --> test/unit_tests/ExpectedType2.silly
+16 | 
+17 | def Something() -> something:
+                        ^^^^^^^^^ this should be a type
+18 | 	123;
+
+Parser Error: List entry found while parsing dictionary entries.
+ --> test/unit_tests/ExpectedType2.silly
+19 | 
+20 | Something();
+              ^^^ this should have label (MY_LABEL: ...)
+21 |
+###
+
+def Something() -> something:
+	123;
+
+Something();

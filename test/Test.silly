@@ -1,11 +1,11 @@
 
 
-def CameraMove(start: int, end: int) -> dict:
+def CameraMove(start: int, end: int) -> dict!abc:
 	type: 0;
 	start: start;
 	end: end;
 
-def StartAnimation(nodePath: string, animationName: string) -> dict:
+def StartAnimation(nodePath: string, animationName: string) -> dict!abc:
 	type: 1;
 	nodePath: nodePath;
 	animationName: animationName;
@@ -13,13 +13,13 @@ def StartAnimation(nodePath: string, animationName: string) -> dict:
 syntax If:
 	pattern:
 		if <condition: dict>:
-			<things: list>
+			<things: dict!abc list>
 
 syntax Compare:
 	pattern:
 		<first: int> == <second: int>
 
-	def toData(first: int, second: int) -> dict:
+	def toData(first: int, second: int) -> dict!bool:
 		type: 0; first: first; second: second;
 
 if 12 == 321:

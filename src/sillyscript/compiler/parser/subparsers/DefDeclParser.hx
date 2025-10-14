@@ -41,11 +41,16 @@ class DefDeclParser {
 		parser.ignoreWhitespace();
 
 		final arguments = [];
+		final errors = [];
 		while(parser.peek() != ParenthesisClose) {
 			switch(parseArgument(parser)) {
 				case Success(result): arguments.push(result);
 				case NoMatch: {}
-				case Error(error): return Error(error);
+				case Error(parseErrors): {
+					for(e in parseErrors) {
+						errors.push(e);
+					}
+				}
 			}
 
 			parser.ignoreWhitespace();
@@ -60,6 +65,10 @@ class DefDeclParser {
 			}
 
 			parser.ignoreWhitespace();
+		}
+
+		if(errors.length != 0) {
+			return Error(errors);
 		}
 
 		returnIfError(parser.expect(ParenthesisClose));

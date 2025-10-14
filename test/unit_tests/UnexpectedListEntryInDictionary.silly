@@ -1,0 +1,21 @@
+### error
+Parser Error: List entry found while parsing dictionary entries.
+ --> test/unit_tests/UnexpectedListEntryInDictionary.silly
+17 | number1: 1;
+18 | 2;
+     ^ this should have label (MY_LABEL: ...)
+19 | number3: 3;
+
+Parser Error: List entry found while parsing dictionary entries.
+ --> test/unit_tests/UnexpectedListEntryInDictionary.silly
+19 | number3: 3;
+20 | 4;
+     ^ this should have label (MY_LABEL: ...)
+21 | number5: 5;
+###
+
+number1: 1;
+2;
+number3: 3;
+4;
+number5: 5;

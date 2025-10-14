@@ -1,0 +1,14 @@
+### output
+[
+	[
+		123,
+		null
+	]
+]
+###
+
+def Something(num1: int?, num2: int) -> list:
+	num1;
+	num2;
+
+Something(123, null);

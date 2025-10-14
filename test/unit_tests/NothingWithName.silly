@@ -1,0 +1,9 @@
+### error
+Typing Error: There is no declaration with this name.
+ --> test/unit_tests/NothingWithName.silly
+8 | 
+9 | Test;
+    ^^^^ Test is undefined
+###
+
+Test;

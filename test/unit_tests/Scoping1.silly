@@ -1,0 +1,22 @@
+### error
+Typing Error: There is no declaration with this name.
+ --> test/unit_tests/Scoping1.silly
+21 | 
+22 | Something("Hello", "Goodbye");
+     ^^^^^^^^^ Something is undefined
+23 | 
+
+Typing Error: Cannot call this expression of unknown type.
+ --> test/unit_tests/Scoping1.silly
+21 | 
+22 | Something("Hello", "Goodbye");
+              ^^^^^^^^^^^^^^^^^^^^^ cannot call this expression of unknown type
+23 |
+###
+
+:
+	def Something(num: int, s: string) -> list:
+		num;
+		s;
+
+Something("Hello", "Goodbye");

@@ -1,0 +1,14 @@
+### output
+[
+	[
+		123,
+		"Goodbye"
+	]
+]
+###
+
+def Something(num: int!special, s: string) -> list:
+	num;
+	s;
+
+Something(123, "Goodbye");

@@ -79,7 +79,7 @@ class CompileErrorExt {
 				"There is no declaration with this name.";
 			}
 			case TyperError(MissingArgument(def, argumentIndex)): {
-				"Missing argument #" + argumentIndex + " of " + def.name + "(" + def.arguments[argumentIndex].value.name.value + ").";
+				"Missing argument #" + (argumentIndex + 1) + " of " + def.name + "(" + def.arguments[argumentIndex].value.name.value + ").";
 			}
 			case TyperError(WrongType): {
 				"A value of this type cannot be passed to that type.";

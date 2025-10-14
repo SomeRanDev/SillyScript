@@ -1,0 +1,17 @@
+### output
+[
+	[
+		[
+			"Hello",
+			"Goodbye"
+		]
+	]
+]
+###
+
+:
+	def Something(num: int, s: string) -> list:
+		num;
+		s;
+
+	Something("Hello", "Goodbye");
