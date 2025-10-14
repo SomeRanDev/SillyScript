@@ -108,9 +108,6 @@ class CompileErrorExt {
 			case TyperError(InvalidTypesForMultipleCustomSyntaxCandidates(_)): {
 				"There are multiple candidates for this custom syntax, but none match the types of the expressions provided.";
 			}
-			case TyperError(TODO(message)): {
-				"TODO: implement this error message.";
-			}
 
 			case ExecutorError(CannotExecuteDefIdentifier): {
 				"Cannot convert uncalled def identifier to data.";
@@ -207,9 +204,6 @@ class CompileErrorExt {
 			}
 			case TyperError(InvalidTypesForMultipleCustomSyntaxCandidates(syntaxes)): {
 				"invalid types for all of the following custom syntaxes: " + syntaxes.map(s -> s.name.value).join(", ");
-			}
-			case TyperError(TODO(message)): {
-				message;
 			}
 
 			case ExecutorError(CannotExecuteDefIdentifier): {

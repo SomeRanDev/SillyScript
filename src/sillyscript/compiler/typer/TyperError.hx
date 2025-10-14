@@ -24,5 +24,4 @@ enum TyperError {
 	AmbiguousCustomSyntaxCandidates(names: Array<String>);
 	InvalidTypesForCustomSyntax(customSyntax: Null<TypedCustomSyntaxDeclaration>);
 	InvalidTypesForMultipleCustomSyntaxCandidates(customSyntax: Array<TypedCustomSyntaxDeclaration>);
-	TODO(message: String);
 }
