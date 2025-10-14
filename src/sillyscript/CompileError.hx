@@ -35,7 +35,7 @@ class CompileErrorExt {
 				"Unexpected end of file.";
 			}
 
-			case ParserError(NoMatch): {
+			case ParserError(ParserNoMatch): {
 				"Unexpected content encountered that does not match SillyScript syntax.";
 			}
 			case ParserError(Expected(token)) | ParserError(ExpectedMultiple([token])): {
@@ -81,9 +81,6 @@ class CompileErrorExt {
 			case TyperError(MissingArgument(def, argumentIndex)): {
 				"Missing argument #" + argumentIndex + " of " + def.name + "(" + def.arguments[argumentIndex].value.name.value + ").";
 			}
-			case TyperError(CannotCallExpression): {
-				"Cannot call expression.";
-			}
 			case TyperError(WrongType): {
 				"A value of this type cannot be passed to that type.";
 			}
@@ -96,8 +93,11 @@ class CompileErrorExt {
 			case TyperError(InconsistentTypeBetweenSyntaxTemplates): {
 				"Inconsistent type between expression inputs of same name in different syntax templates.";
 			}
-			case TyperError(CannotCall(type)): {
+			case TyperError(CannotCall(type)) if(type != null): {
 				"Cannot call instances of type " + type.toString() + ".";
+			}
+			case TyperError(CannotCall(_)): {
+				"Cannot call this expression of unknown type.";
 			}
 			case TyperError(AmbiguousCustomSyntaxCandidates(_)): {
 				"Multiple custom syntax declarations can match this syntax.";
@@ -132,7 +132,7 @@ class CompileErrorExt {
 				"the file ended unexpectedly here";
 			}
 
-			case ParserError(NoMatch): {
+			case ParserError(ParserNoMatch): {
 				"unexpected content encountered";
 			}
 			case ParserError(Expected(token)) | ParserError(ExpectedMultiple([token])): {
@@ -178,9 +178,6 @@ class CompileErrorExt {
 			case TyperError(MissingArgument(def, argumentIndex)): {
 				"missing argument " + def.arguments[argumentIndex].value.name.value;
 			}
-			case TyperError(CannotCallExpression): {
-				"cannot call this expression";
-			}
 			case TyperError(WrongType): {
 				"these types are not the same";
 			}
@@ -193,8 +190,11 @@ class CompileErrorExt {
 			case TyperError(InconsistentTypeBetweenSyntaxTemplates): {
 				"this must have the same type in all syntax templates";
 			}
-			case TyperError(CannotCall(type)): {
-				"cannot call " + type.toString();
+			case TyperError(CannotCall(type)) if(type != null): {
+				"cannot call expression of type " + type.toString();
+			}
+			case TyperError(CannotCall(_)): {
+				"cannot call this expression of unknown type";
 			}
 			case TyperError(AmbiguousCustomSyntaxCandidates(names)): {
 				"this could be any of the following custom syntaxes: " + names.join(", ");

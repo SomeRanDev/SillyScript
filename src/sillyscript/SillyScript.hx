@@ -61,7 +61,7 @@ class SillyScript {
 			case Success(result): result;
 			case NoMatch: {
 				return Error([{
-					value: ParserError(NoMatch),
+					value: ParserError(ParserNoMatch),
 					position: { fileIdentifier: fileId, start: -1, end: -1 }
 				}]);
 			}

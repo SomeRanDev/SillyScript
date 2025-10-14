@@ -1,0 +1,12 @@
+### error
+Parser Error: Dictionary entry found while parsing list entries.
+ --> test/unit_tests/UnexpectedDictionaryEntryWhileParsingList.silly
+11 | 2;
+12 | number: 3;
+     ^^^^^^^^^ this shouldn't have a label
+13 |
+###
+
+1;
+2;
+number: 3;

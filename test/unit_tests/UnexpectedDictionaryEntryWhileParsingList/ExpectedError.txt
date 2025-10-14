@@ -1,5 +1,0 @@
-Parser Error: Dictionary entry found while parsing list entries.
- --> test/unit_tests/UnexpectedDictionaryEntryWhileParsingList/Main.silly
-2 | 2;
-3 | number: 3;
-    ^^^^^^^^^ this shouldn't have a label

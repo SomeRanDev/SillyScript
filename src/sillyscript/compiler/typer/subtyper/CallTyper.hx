@@ -86,8 +86,13 @@ class CallTyper {
 				}
 			}
 			case _: {
+				final type = if(positionedTypedAst != null) {
+					SillyType.fromTypedAst(positionedTypedAst).asNullable();
+				} else {
+					null;
+				}
 				errors.push({
-					value: CannotCallExpression,
+					value: CannotCall(type),
 					position: ast.position
 				});
 			}

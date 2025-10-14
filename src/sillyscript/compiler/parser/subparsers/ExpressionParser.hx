@@ -125,7 +125,7 @@ class ExpressionParser {
 					}
 				}
 				case NoMatch: {
-					errors.push({ value: NoMatch, position: parser.here() });
+					errors.push({ value: ParserNoMatch, position: parser.here() });
 					break;
 				}
 				case Error(entryParseErrors): {

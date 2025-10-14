@@ -12,7 +12,8 @@ using StringTools;
 **/
 enum RunTestResult {
 	Success;
-	TestSuccessfulButNoExpectedOutputJson;
+	NoSillyScriptFilesFound;
+	TestSuccessfulButNoExpectedOutput;
 	TestSuccessfulButNoOutputJson;
 	TestSuccessfulButDoesntMatch(output: String);
 	TestFailedButNoExpectedError(stderrOutput: String);
@@ -34,6 +35,15 @@ enum ExecutableKind {
 	Direct(path: String);
 	HashLink(path: String);
 	NodeJs(path: String);
+}
+
+/**
+	The header of a single-file SillyScript test.
+**/
+enum Header {
+	Invalid;
+	OutputHeader(content: String, endCharacterIndex: Int);
+	ErrorHeader(content: String, endCharacterIndex: Int);
 }
 
 /**
@@ -115,100 +125,180 @@ function validateArguments(): Null<Args> {
 }
 
 /**
+	The regular expression used to parse the header for a single-file SillyScript test.
+**/
+inline function generateHeaderRegex(): EReg {
+	return ~/^###[ \t]*(output|error)((.(?!^###$))+.)###\n/s;
+}
+
+/**
+	Extracts the header content from a single-file SillyScript test.
+**/
+function extractHeaderContent(sillyScriptPath: String): Header {
+	final originalContent = File.getContent(sillyScriptPath);
+	final re = generateHeaderRegex();
+	return if(re.match(originalContent)) {
+		final contents = re.matched(2);
+		final endCharacterIndex = re.matched(0).length;
+		switch(re.matched(1)) {
+			case "output": OutputHeader(contents, endCharacterIndex);
+			case "error": ErrorHeader(contents, endCharacterIndex);
+			case _: Invalid;
+		}
+	} else {
+		Invalid;
+	}
+}
+
+/**
+	Sets the header content for a single-file SillyScript test.
+**/
+function setHeaderContent(sillyScriptPath: String, content: String, kind: String) {
+	final originalContent = File.getContent(sillyScriptPath);
+	final code = switch(extractHeaderContent(sillyScriptPath)) {
+		case OutputHeader(_, endCharacterIndex) | ErrorHeader(_, endCharacterIndex): {
+			originalContent.substring(endCharacterIndex);
+		}
+		case Invalid: {
+			originalContent;
+		}
+	}
+	final finalContent = "### " + kind + "\n" + content + "\n###\n" + code;
+	File.saveContent(sillyScriptPath, finalContent);
+}
+
+/**
 	Runs all the tests by reading the directories in the provided unit-tests folder.
 **/
 function runTests(args: Args) {
-	for(testFolder in FileSystem.readDirectory(args.tests)) {
-		final path = Path.join([args.tests, testFolder]);
-		switch(runTest(path, args.executable)) {
+	for(testEntry in FileSystem.readDirectory(args.tests)) {
+		final path = Path.join([args.tests, testEntry]);
+		final isDirectory = FileSystem.isDirectory(path);
+		final isSingleFileTest = switch(Path.extension(testEntry)) {
+			case "silly" if(!isDirectory): true;
+			case _ if(isDirectory): false;
+			case _: continue; // Ignore if not .silly or directory
+		}
+
+		switch(runTest(path, isSingleFileTest, args.executable)) {
 			case Success: {
-				Sys.println(testFolder + " success!");
+				Sys.println(testEntry + " success!");
+			}
+			case NoSillyScriptFilesFound: {
+				error(testEntry + " had no .silly files...");
 			}
 			case TestSuccessfulButDoesntMatch(output) if(args.updateIntended): {
-				File.saveContent(Path.join([path, "ExpectedOutput.json"]), cleanupContent(output));
-				Sys.println(testFolder + " has been updated.");
+				if(isSingleFileTest) {
+					setHeaderContent(path, cleanupContent(output), "output");
+				} else {
+					File.saveContent(Path.join([path, "ExpectedOutput.json"]), cleanupContent(output));
+				}
+				Sys.println(testEntry + " has been updated.");
 			}
-			case TestSuccessfulButNoExpectedOutputJson if(args.updateIntended): {
+			case TestSuccessfulButNoExpectedOutput if(args.updateIntended): {
 				final output = File.getContent(Path.join([path, "Output.json"]));
-				File.saveContent(Path.join([path, "ExpectedOutput.json"]), cleanupContent(output));
-				Sys.println(testFolder + " has been updated.");
+				if(isSingleFileTest) {
+					setHeaderContent(path, cleanupContent(output), "output");
+				} else {
+					File.saveContent(Path.join([path, "ExpectedOutput.json"]), cleanupContent(output));
+				}
+				Sys.println(testEntry + " has been updated.");
 			}
 			case TestFailedButDoesntMatch(output) | TestFailedButNoExpectedError(output) if(args.updateIntended): {
-				File.saveContent(Path.join([path, "ExpectedError.txt"]), cleanupContent(output));
-				Sys.println(testFolder + " has been updated.");
+				if(isSingleFileTest) {
+					setHeaderContent(path, cleanupContent(output), "error");
+				} else {
+					File.saveContent(Path.join([path, "ExpectedError.txt"]), cleanupContent(output));
+				}
+				Sys.println(testEntry + " has been updated.");
 			}
-			case TestSuccessfulButNoExpectedOutputJson: {
-				error(testFolder + " successfully compiled, but there's no ExpectedOutput.json.");
+			case TestSuccessfulButNoExpectedOutput: {
+				error(testEntry + " successfully compiled, but there's no ExpectedOutput.json.");
 			}
 			case TestSuccessfulButNoOutputJson: {
-				error(testFolder + " successfully compiled, but didn't generate an Output.json.");
+				error(testEntry + " successfully compiled, but didn't generate an Output.json.");
 			}
 			case TestSuccessfulButDoesntMatch(output): {
-				error(testFolder + " successfully compiled, but doesn't match the intended output:\n" + output);
+				error(testEntry + " successfully compiled, but doesn't match the intended output:\n" + output);
 			}
 			case TestFailedButNoExpectedError(stderrOutput): {
-				error(testFolder + " failed, but there's no ExpectedError.txt.\n" + stderrOutput);
+				error(testEntry + " failed, but there's no ExpectedError.txt.\n" + stderrOutput);
 			}
 			case TestFailedButDoesntMatch(newErrorOutput): {
-				error(testFolder + " failed, but doesn't match the ExpectedError.txt:\n" + newErrorOutput);
+				error(testEntry + " failed, but doesn't match the ExpectedError.txt:\n" + newErrorOutput);
 			}
 		}
 	}
 }
 
-function runTest(folder: String, executable: ExecutableKind): RunTestResult {
+function runTest(folderOrFile: String, isSingleFileTest: Bool, executable: ExecutableKind): RunTestResult {
 	final sillyFiles = [];
 	final expected = { error: null, output: null };
-	for(file in FileSystem.readDirectory(folder)) {
-		final filePath = Path.join([folder, file]);
-		switch(file) {
-			case "ExpectedError.txt": {
-				expected.error = File.getContent(filePath);
+	if(isSingleFileTest) {
+		sillyFiles.push(folderOrFile);
+		switch(extractHeaderContent(folderOrFile)) {
+			case OutputHeader(content, _): {
+				expected.output = content;
 			}
-			case "ExpectedOutput.json": {
-				expected.output = File.getContent(filePath);
+			case ErrorHeader(content, _): {
+				expected.error = content;
 			}
-			case _ if(Path.extension(file) == "silly"): {
-				sillyFiles.push(filePath);
+			case Invalid: {}
+		}
+	} else {
+		for(file in FileSystem.readDirectory(folderOrFile)) {
+			final filePath = Path.join([folderOrFile, file]);
+			switch(file) {
+				case "ExpectedError.txt": {
+					expected.error = File.getContent(filePath);
+				}
+				case "ExpectedOutput.json": {
+					expected.output = File.getContent(filePath);
+				}
+				case _ if(Path.extension(file) == "silly"): {
+					sillyFiles.push(filePath);
+				}
 			}
 		}
 	}
 
-	if(sillyFiles.length > 0) {
-		final sillyPath = sillyFiles[0];
-		final outputPath = Path.join([Path.directory(sillyPath), "Output.json"]);
-		final arguments = [sillyPath, outputPath, "--dont-color-errors"];
-		final executable = switch(executable) {
-			case Direct(path): path;
-			case HashLink(path): {
-				arguments.unshift(path);
-				"hl";
+	if(sillyFiles.length == 0) {
+		return NoSillyScriptFilesFound;
+	}
+
+	final sillyPath = sillyFiles[0];
+	final outputPath = Path.join([Path.directory(sillyPath), "Output.json"]);
+	final arguments = [sillyPath, outputPath, "--dont-color-errors"];
+	final executable = switch(executable) {
+		case Direct(path): path;
+		case HashLink(path): {
+			arguments.unshift(path);
+			"hl";
+		}
+		case NodeJs(path): {
+			arguments.unshift(path);
+			"node";
+		}
+	}
+	switch(run(executable, arguments)) {
+		case Success: {
+			if(expected.output == null) {
+				return TestSuccessfulButNoExpectedOutput;
 			}
-			case NodeJs(path): {
-				arguments.unshift(path);
-				"node";
+			if(!FileSystem.exists(outputPath)) {
+				return TestSuccessfulButNoOutputJson;
+			}
+			final output = File.getContent(outputPath);
+			if(!areContentsSame(expected.output, output)) {
+				return TestSuccessfulButDoesntMatch(output);
 			}
 		}
-		switch(run(executable, arguments)) {
-			case Success: {
-				if(expected.output == null) {
-					return TestSuccessfulButNoExpectedOutputJson;
-				}
-				if(!FileSystem.exists(outputPath)) {
-					return TestSuccessfulButNoOutputJson;
-				}
-				final output = File.getContent(outputPath);
-				if(!areContentsSame(expected.output, output)) {
-					return TestSuccessfulButDoesntMatch(output);
-				}
+		case Error(stderrOutput): {
+			if(expected.error == null) {
+				return TestFailedButNoExpectedError(stderrOutput);
 			}
-			case Error(stderrOutput): {
-				if(expected.error == null) {
-					return TestFailedButNoExpectedError(stderrOutput);
-				}
-				if(!areContentsSame(expected.error, stderrOutput)) {
-					return TestFailedButDoesntMatch(stderrOutput);
-				}
+			if(!areContentsSame(expected.error, stderrOutput)) {
+				return TestFailedButDoesntMatch(stderrOutput);
 			}
 		}
 	}

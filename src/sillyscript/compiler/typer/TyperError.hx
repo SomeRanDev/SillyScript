@@ -15,12 +15,11 @@ enum TyperError {
 
 	NothingWithName(name: String);
 	MissingArgument(def: TypedDef, argumentIndex: Int);
-	CannotCallExpression;
 	WrongType;
 	WrongRole;
 	CannotPassNullableTypeToNonNullable;
 	InconsistentTypeBetweenSyntaxTemplates;
-	CannotCall(type: SillyType);
+	CannotCall(type: Null<SillyType>);
 	AmbiguousCustomSyntaxCandidates(names: Array<String>);
 	InvalidTypesForCustomSyntax(customSyntax: Null<TypedCustomSyntaxDeclaration>);
 	InvalidTypesForMultipleCustomSyntaxCandidates(customSyntax: Array<TypedCustomSyntaxDeclaration>);
