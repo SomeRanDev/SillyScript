@@ -1,5 +1,6 @@
 package sillyscript.compiler.typer;
 
+import sillyscript.extensions.Nothing;
 import sillyscript.compiler.typer.ast.TypedDef;
 
 /**
@@ -78,16 +79,23 @@ class SillyTypeKindExt {
 		For instance, `int list` can be passed to `any list`.
 	**/
 	public static function canReceiveType(
-		self: SillyTypeKind, other: SillyTypeKind
+		self: SillyTypeKind,
+		other: SillyTypeKind
 	): Result<Bool, TyperError> {
 		return switch(self) {
 			case Any: Success(true);
 			case List(subtype): switch(other) {
-				case List(otherSubtype): subtype.canReceiveType(otherSubtype);
+				case List(otherSubtype): switch(subtype.canReceiveType(otherSubtype)) {
+					case Success(Nothing): Success(true);
+					case Error(e): Error(e);
+				}
 				case _: Success(false);
 			}
 			case Dictionary(subtype): switch(other) {
-				case Dictionary(otherSubtype): subtype.canReceiveType(otherSubtype);
+				case Dictionary(otherSubtype): switch(subtype.canReceiveType(otherSubtype)) {
+					case Success(Nothing): Success(true);
+					case Error(e): Error(e);
+				}
 				case _: Success(false);
 			}
 			case _: Success(isEqual(self, other));

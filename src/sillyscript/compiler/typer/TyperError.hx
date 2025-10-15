@@ -1,5 +1,6 @@
 package sillyscript.compiler.typer;
 
+import sillyscript.compiler.typer.SillyType;
 import sillyscript.compiler.typer.ast.TypedCustomSyntaxDeclaration;
 import sillyscript.compiler.typer.ast.TypedDef;
 
@@ -15,7 +16,8 @@ enum TyperError {
 
 	NothingWithName(name: String);
 	MissingArgument(def: TypedDef, argumentIndex: Int);
-	WrongType;
+	WrongType(receivingType: SillyType, providingType: SillyType);
+	WrongReturnType(receivingType: SillyType, providingType: SillyType);
 	WrongRole;
 	CannotPassNullableTypeToNonNullable;
 	InconsistentTypeBetweenSyntaxTemplates;

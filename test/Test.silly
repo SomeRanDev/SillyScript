@@ -11,7 +11,7 @@ def StartAnimation(nodePath: string, animationName: string) -> dict!abc:
 	animationName: animationName;
 
 syntax If:
-	pattern:
+	pattern -> int dict:
 		if <condition: dict!bool>:
 			<things: dict!abc list>
 
@@ -38,7 +38,12 @@ syntax Increment:
 
 123--;
 
-def Bla(a: int) -> dict:
+def Bla(a: int, b: int) -> dict:
 	a: a;
+	b: b;
 
-Bla(a: 123);
+def Bla2(a: int, b: int) -> list:
+	a; b;
+
+Bla(321, a: 123);
+Bla2(321, a: 333);

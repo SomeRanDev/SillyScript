@@ -1,17 +1,30 @@
-### output
-[
-	{
-		"data": 321
-	},
-	{
-		"data": 123
-	},
-	{
-		"data": [
-			123
-		]
-	}
-]
+### error
+Typing Error: A value of type `int list` cannot be returned as type `int`.
+ --> test/unit_tests/CustomSyntaxWithExpression.silly
+33 | 
+34 | def GetNum() -> int:
+     ^^^^^^^^^^^^^^^^^^^^ cannot return `int list` as `int`
+35 | 	123;
+     ^^^^^
+36 | 
+     ^
+37 | 💀321💀;
+     ^
+38 | 💀123💀;
+
+Typing Error: There is no declaration with this name.
+ --> test/unit_tests/CustomSyntaxWithExpression.silly
+38 | 💀123💀;
+39 | 💀GetNum()💀;
+       ^^^^^^ GetNum is undefined
+40 | 
+
+Typing Error: Cannot call this expression of unknown type.
+ --> test/unit_tests/CustomSyntaxWithExpression.silly
+38 | 💀123💀;
+39 | 💀GetNum()💀;
+             ^^^ cannot call this expression of unknown type
+40 |
 ###
 
 syntax Dead:

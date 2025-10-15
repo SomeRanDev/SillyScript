@@ -1,12 +1,10 @@
-### output
-[
-	[
-		[
-			"Hello",
-			"Goodbye"
-		]
-	]
-]
+### error
+Typing Error: A value of type `string` cannot be passed to type `int`.
+ --> test/unit_tests/Scoping2.silly
+14 | 
+15 | 	Something("Hello", "Goodbye");
+                ^^^^^^^ cannot pass `string` to `int`
+16 |
 ###
 
 :

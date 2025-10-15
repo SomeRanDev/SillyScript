@@ -1,12 +1,13 @@
 package sillyscript.compiler.typer.subtyper;
 
-import sillyscript.compiler.parser.UntypedAst;
 import haxe.ds.ReadOnlyArray;
 import sillyscript.compiler.parser.custom_syntax.CustomSyntaxScope.CustomSyntaxScopeMatchResultExpression;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxId;
-import sillyscript.compiler.typer.ast.TypedCustomSyntaxDeclaration;
-import sillyscript.compiler.typer.Typer.TyperResult;
+import sillyscript.compiler.parser.UntypedAst;
 import sillyscript.compiler.Result.PositionedResult;
+import sillyscript.compiler.typer.ast.TypedCustomSyntaxDeclaration;
+import sillyscript.compiler.typer.TypedAstWithType;
+import sillyscript.compiler.typer.Typer.TyperResult;
 using sillyscript.extensions.ArrayExt;
 
 /**
@@ -124,14 +125,14 @@ class CustomSyntaxExprTyper {
 	static function extractTypedExpressionsFromCustomSyntax(
 		typer: Typer,
 		expressions: ReadOnlyArray<CustomSyntaxScopeMatchResultExpression>
-	): PositionedResult<Array<{ typedExpression: Positioned<TypedAst>, type: SillyType }>, TyperError> {
-		final typedExpressions: Array<{ typedExpression: Positioned<TypedAst>, type: SillyType }> = [];
+	): PositionedResult<Array<TypedAstWithType>, TyperError> {
+		final typedExpressions: Array<TypedAstWithType> = [];
 		final errors: Array<Positioned<TyperError>> = [];
 		for(e in expressions) {
 			switch(typer.typeAst(e.expression)) {
 				case Success(typedAst): {
 					typedExpressions.push({
-						typedExpression: typedAst,
+						typedAst: typedAst,
 						type: switch(SillyType.fromTypedAst(typedAst)) {
 							case Success(type): type;
 							case Error(e): return Error(e);
@@ -161,7 +162,7 @@ class CustomSyntaxExprTyper {
 		typer: Typer,
 		candidates: ReadOnlyArray<{ id: CustomSyntaxId, patternIndex: Int }>,
 		expressions: ReadOnlyArray<CustomSyntaxScopeMatchResultExpression>,
-		typedExpressions: ReadOnlyArray<{ typedExpression: Positioned<TypedAst>, type: SillyType }>
+		typedExpressions: ReadOnlyArray<TypedAstWithType>
 	): PositionedResult<{
 		newCandidateDeclarations: Array<TypedCustomSyntaxDeclarationAndPattern>,
 		identifiedExpressions: Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>>
@@ -206,7 +207,7 @@ class CustomSyntaxExprTyper {
 		candidate: { id: CustomSyntaxId, patternIndex: Int },
 		identifiedExpressions: Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>>,
 		expressions: ReadOnlyArray<CustomSyntaxScopeMatchResultExpression>,
-		typedExpressions: ReadOnlyArray<{ typedExpression: Positioned<TypedAst>, type: SillyType }>
+		typedExpressions: ReadOnlyArray<TypedAstWithType>
 	): PositionedResult<Array<TypedCustomSyntaxDeclarationAndPattern>, TyperError> {
 		final newCandidates: Array<TypedCustomSyntaxDeclarationAndPattern> = [];
 
@@ -248,13 +249,13 @@ class CustomSyntaxExprTyper {
 			identifyExpressions.push({
 				key: {
 					value: identifier,
-					position: typedExpression.typedExpression.position
+					position: typedExpression.typedAst.position
 				},
-				value: typedExpression.typedExpression
+				value: typedExpression.typedAst
 			});
 
 			switch(candidateDesiredType.canReceiveType(typedExpression.type)) {
-				case Success(true): {}
+				case Success(Nothing): {}
 				case _: {
 					valid = false;
 					break;

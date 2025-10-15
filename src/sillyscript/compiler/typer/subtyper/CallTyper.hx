@@ -1,8 +1,14 @@
 package sillyscript.compiler.typer.subtyper;
 
+import sillyscript.Positioned;
 import sillyscript.compiler.parser.UntypedAst;
 import sillyscript.compiler.typer.Typer;
+import sillyscript.compiler.typer.TypedAstWithType;
+using sillyscript.extensions.ArrayExt;
 
+/**
+	Types an untyped `Call` AST.
+**/
 class CallTyper {
 	public static function type(
 		typer: Typer,
@@ -20,17 +26,32 @@ class CallTyper {
 			}
 		}
 
-		final typedNamedArguments = [];
-		final typedUnnamedArguments = [];
+		final typedNamedArguments: Array<{ name: String, value: TypedAstWithType }> = [];
+		final typedUnnamedArguments: Array<TypedAstWithType> = [];
 		for(argument in arguments) {
 			switch(typer.typeAst(argument.value)) {
-				case Success(called): {
+				case Success(typedArgument): {
+					final argumentType = switch(SillyType.fromTypedAst(typedArgument)) {
+						case Success(type): type;
+						case Error(typingError): {
+							for(e in typingError) {
+								errors.push(e);
+							}
+							SillyType.ANY;
+						}
+					}
 					if(argument.name == null) {
-						typedUnnamedArguments.push(called);
+						typedUnnamedArguments.push({
+							typedAst: typedArgument,
+							type: argumentType
+						});
 					} else {
 						typedNamedArguments.push({
 							name: argument.name,
-							value: called
+							value: {
+								typedAst: typedArgument,
+								type: argumentType
+							}
 						});
 					}
 				}
@@ -74,7 +95,23 @@ class CallTyper {
 						missingArgument = i;
 						break;
 					} else {
-						orderedTypedArguments.push(a);
+						final defArgument = def.value.arguments.get(i);
+						if(defArgument != null) {
+							final receivingType = defArgument.value.type.value;
+							switch(receivingType.canReceiveType(a.type)) {
+								case Success(Nothing): {
+									orderedTypedArguments.push(a.typedAst);
+								}
+								case Error(receiveTypeErrors): {
+									for(e in receiveTypeErrors) {
+										errors.push({
+											value: e,
+											position: a.typedAst.position
+										});
+									}
+								}
+							}
+						}
 					}
 				}
 

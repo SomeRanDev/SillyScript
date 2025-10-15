@@ -26,6 +26,7 @@
 ]
 ###
 
+
 def CameraMove(start: int, end: int) -> dict!action:
 	type: 0;
 	start: start;
@@ -38,15 +39,12 @@ def StartAnimation(nodePath: string, animationName: string) -> dict!action:
 
 syntax If:
 	pattern:
-		if <condition: dict>:
+		if <condition: dict!bool>:
 			<things: dict!action list>
 
 syntax Compare:
-	pattern:
+	pattern -> dict!bool:
 		<first: int> == <second: int>
-
-	def toData(first: int, second: int) -> dict!bool:
-		type: 0; first: first; second: second;
 
 if 12 == 321:
 	CameraMove(1, 2);

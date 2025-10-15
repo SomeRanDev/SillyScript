@@ -81,8 +81,11 @@ class CompileErrorExt {
 			case TyperError(MissingArgument(def, argumentIndex)): {
 				"Missing argument #" + (argumentIndex + 1) + " of " + def.name + "(" + def.arguments[argumentIndex].value.name.value + ").";
 			}
-			case TyperError(WrongType): {
-				"A value of this type cannot be passed to that type.";
+			case TyperError(WrongType(receivingType, providingType)): {
+				"A value of type `" + providingType.toString() + "` cannot be passed to type `" + receivingType.toString() + "`.";
+			}
+			case TyperError(WrongReturnType(receivingType, providingType)): {
+				"A value of type `" + providingType.toString() + "` cannot be returned as type `" + receivingType.toString() + "`.";
 			}
 			case TyperError(WrongRole): {
 				"Cannot pass type with different role.";
@@ -178,8 +181,11 @@ class CompileErrorExt {
 			case TyperError(MissingArgument(def, argumentIndex)): {
 				"missing argument " + def.arguments[argumentIndex].value.name.value;
 			}
-			case TyperError(WrongType): {
-				"these types are not the same";
+			case TyperError(WrongType(receivingType, providingType)): {
+				"cannot pass `" + providingType.toString() + "` to `" + receivingType.toString() + "`";
+			}
+			case TyperError(WrongReturnType(receivingType, providingType)): {
+				"cannot return `" + providingType.toString() + "` as `" + receivingType.toString() + "`";
 			}
 			case TyperError(WrongRole): {
 				"these types have different roles";

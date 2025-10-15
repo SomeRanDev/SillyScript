@@ -1,6 +1,5 @@
 package sillyscript.compiler.parser;
 
-import sillyscript.Position;
 import sillyscript.compiler.typer.SillyType;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration;
 import sillyscript.compiler.parser.custom_syntax.CustomSyntaxScope;

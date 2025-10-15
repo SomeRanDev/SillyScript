@@ -1,5 +1,6 @@
 package sillyscript.compiler.typer;
 
+import sillyscript.extensions.Nothing;
 import sillyscript.compiler.Result.PositionedResult;
 import sillyscript.compiler.typer.SillyTypeKind;
 import sillyscript.compiler.typer.TyperError;
@@ -99,24 +100,34 @@ class SillyType {
 
 		For instance, `int` can be passed to `int?` BUT `dict` cannot be passed to `dict!cool`.
 	**/
-	public function canReceiveType(other: SillyType): Result<Bool, TyperError> {
+	public function canReceiveType(other: SillyType): Result<Nothing, TyperError> {
 		var attributes = findMatchingAttributes(other);
 
 		// Instead of checking if kinds are equal, let's check if they can be "received".
 		switch(kind.canReceiveType(other.kind)) {
 			case Success(true): attributes |= Kind;
 			case Success(false): {}
-			case Error(e): return Error(e);
+			case Error(e): return Error(e.map(function(e) {
+				return switch(e) {
+					case WrongType(_, _): WrongType(this, other);
+					case e: e;
+				}
+			}));
+		}
+
+		// If the provided type has no role, allow it to be received regardless.
+		if(role != null && other.role == null) {
+			attributes |= Role;
 		}
 
 		if(attributes == All) {
-			return Success(true);
+			return Success(Nothing);
 		}
 
 		// If the only distinction is nullability, handle here...
 		if(attributes == Kind | Role) {
 			return if(nullable && !other.nullable) {
-				Success(true);
+				Success(Nothing);
 			} else {
 				Error([CannotPassNullableTypeToNonNullable]);
 			}
@@ -124,7 +135,7 @@ class SillyType {
 
 		// Allow passing `null` to nullable.
 		switch(other.kind) {
-			case Null if(nullable): return Success(true);
+			case Null if(nullable): return Success(Nothing);
 			case _:
 		}
 
@@ -133,7 +144,7 @@ class SillyType {
 			return Error([WrongRole]);
 		}
 
-		return Error([WrongType]);
+		return Error([WrongType(this, other)]);
 	}
 
 	/**
@@ -213,7 +224,7 @@ class SillyType {
 				}
 
 				{
-					kind: List(innerType),
+					kind: Dictionary(innerType),
 					nullable: false,
 					role: null
 				}

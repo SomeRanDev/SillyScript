@@ -1,10 +1,32 @@
-### output
-[
-	[
-		123,
-		"Goodbye"
-	]
-]
+### error
+Typing Error: A value of type `any list` cannot be returned as type `any dict`.
+ --> test/unit_tests/WrongReturnType.silly
+31 | 
+32 | def Something(num: int, s: string) -> dict:
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot return `any list` as `any dict`
+33 | 	num;
+     ^^^^^
+34 | 	s;
+     ^^^
+35 | 
+     ^
+36 | Something(123, "Goodbye");
+     ^^^^^^^^^
+37 | 
+
+Typing Error: There is no declaration with this name.
+ --> test/unit_tests/WrongReturnType.silly
+35 | 
+36 | Something(123, "Goodbye");
+     ^^^^^^^^^ Something is undefined
+37 | 
+
+Typing Error: Cannot call this expression of unknown type.
+ --> test/unit_tests/WrongReturnType.silly
+35 | 
+36 | Something(123, "Goodbye");
+              ^^^^^^^^^^^^^^^^^ cannot call this expression of unknown type
+37 |
 ###
 
 def Something(num: int, s: string) -> dict:
