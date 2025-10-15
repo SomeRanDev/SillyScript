@@ -31,7 +31,11 @@ class SillyType {
 		Prints the type as it would be in valid SillyScript.
 	**/
 	public function toString(): String {
-		return kind.toString() + (role != null ? "!" + role : "") + (nullable ? "?" : "");
+		final isNull = switch(kind) {
+			case Null: true;
+			case _: false;
+		}
+		return kind.toString() + (role != null ? "!" + role : "") + (nullable && !isNull ? "?" : "");
 	}
 
 	/**

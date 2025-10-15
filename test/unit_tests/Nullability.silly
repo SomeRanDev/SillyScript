@@ -1,9 +1,9 @@
 ### error
-Typing Error: A value of type `null?` cannot be passed to type `int`.
+Typing Error: A value of type `null` cannot be passed to type `int`.
  --> test/unit_tests/Nullability.silly
 12 | 
 13 | Something(123, null);
-                    ^^^^ cannot pass `null?` to `int`
+                    ^^^^ cannot pass `null` to `int`
 ###
 
 def Something(num1: int?, num2: int) -> list:
