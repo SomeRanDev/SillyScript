@@ -39,7 +39,7 @@ class PositionedExt {
 		fileIdentifier: FileIdentifier,
 		message: String,
 		decoratedKind: DecorationKind,
-		surrondingLinesShown: Int = 1,
+		surroundingLinesShown: Int = 1,
 		fileLinkPath: Null<String> = null
 	): Null<String> {
 		final fileInfo = fileIdentifier.get(self.position.fileIdentifier);
@@ -64,8 +64,8 @@ class PositionedExt {
 
 		final startLineInfo = findLineInfo(self.position.start);
 		final endLineInfo = findLineInfo(self.position.end - 1);
-		final lineStart = Std.int(Math.max(0, startLineInfo.line - surrondingLinesShown));
-		final lineEnd = Std.int(Math.min(lines.length, endLineInfo.line + surrondingLinesShown + 1));
+		final lineStart = Std.int(Math.max(0, startLineInfo.line - surroundingLinesShown));
+		final lineEnd = Std.int(Math.min(lines.length, endLineInfo.line + surroundingLinesShown + 1));
 		final lineNumberWidth = Std.string(lineEnd).length;
 
 		final out = new StringBuf();
