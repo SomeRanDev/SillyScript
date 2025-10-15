@@ -21,5 +21,5 @@ enum TypedAst {
 	DefIdentifier(typedDef: Positioned<TypedDef>);
 	DefArgumentIdentifier(typedDef: Positioned<TypedDef>, argumentIndex: Int);
 	Call(calledAst: Positioned<TypedAst>, arguments: Array<Positioned<TypedAst>>);
-	CustomSyntax(customSyntax: TypedCustomSyntaxDeclaration, expressions: Array<TypedDictionaryEntry>);
+	CustomSyntax(customSyntax: TypedCustomSyntaxDeclaration, patternIndex: Int, expressions: Array<TypedDictionaryEntry>);
 }

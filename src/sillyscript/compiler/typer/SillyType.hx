@@ -1,9 +1,9 @@
 package sillyscript.compiler.typer;
 
 import sillyscript.compiler.Result.PositionedResult;
-import sillyscript.compiler.typer.ast.TypedDef;
 import sillyscript.compiler.typer.SillyTypeKind;
 import sillyscript.compiler.typer.TyperError;
+using sillyscript.extensions.ArrayExt;
 
 /**
 	Used internally as flags for `SillyType.findMatchingAttributes`.
@@ -247,12 +247,12 @@ class SillyType {
 					}
 				}
 			}
-			case CustomSyntax(_, _): {
-				{
+			case CustomSyntax(customSyntax, patternIndex, _): {
+				customSyntax.patternTypes.get(patternIndex)?.value ?? ({
 					kind: Dictionary(ANY),
 					nullable: false,
 					role: null
-				}
+				} : SillyType);
 			}
 		});
 	}

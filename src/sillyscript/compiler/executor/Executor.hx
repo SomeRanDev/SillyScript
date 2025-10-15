@@ -116,7 +116,7 @@ class Executor {
 					}
 				}
 			}
-			case CustomSyntax(customSyntax, expressions): {
+			case CustomSyntax(customSyntax, patternIndex, expressions): {
 				final typedEntries: Array<Positioned<{
 					key: Positioned<String>,
 					value: Positioned<DataOutput>

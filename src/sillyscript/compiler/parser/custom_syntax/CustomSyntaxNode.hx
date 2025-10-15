@@ -33,18 +33,21 @@ enum CustomSyntaxNodeKind {
 **/
 class CustomSyntaxNodeScope {
 	public var nextNodes(default, null): Array<CustomSyntaxNode>;
-	public var customSyntaxEndCandidates(default, null): Null<Array<CustomSyntaxId>>;
+	public var customSyntaxEndCandidates(default, null): Null<Array<{ id: CustomSyntaxId, patternIndex: Int }>>;
 
 	public function new() {
 		nextNodes = [];
 		customSyntaxEndCandidates = null;
 	}
 
-	public function addCustomSyntaxEndCandidate(declaration: CustomSyntaxId) {
+	public function addCustomSyntaxEndCandidate(declaration: CustomSyntaxId, patternIndex: Int) {
 		if(customSyntaxEndCandidates == null) {
 			customSyntaxEndCandidates = [];
 		}
-		customSyntaxEndCandidates.push(declaration);
+		customSyntaxEndCandidates.push({
+			id: declaration,
+			patternIndex: patternIndex
+		});
 	}
 }
 
@@ -176,7 +179,7 @@ class CustomSyntaxNode {
 	/**
 		Returns an array of all the custom syntax declaration IDs that can end at this
 	**/
-	public function findCustomSyntaxEndCandidates(): Array<CustomSyntaxId> {
+	public function findCustomSyntaxEndCandidates(): Array<{ id: CustomSyntaxId, patternIndex: Int }> {
 		if(scopeStack.length <= 0) {
 			return [];
 		} else if(scopeStack.length == 1) {
@@ -200,10 +203,10 @@ class CustomSyntaxNode {
 	/**
 		Registers the custom syntax declaration as a candidate for a complete syntax at this node.
 	**/
-	public function addCustomSyntaxEndCandidate(declaration: CustomSyntaxId) {
+	public function addCustomSyntaxEndCandidate(declaration: CustomSyntaxId, patternIndex: Int) {
 		final scope = scopeStack.last();
 		if(scope != null) {
-			scope.addCustomSyntaxEndCandidate(declaration);
+			scope.addCustomSyntaxEndCandidate(declaration, patternIndex);
 		}
 	}
 

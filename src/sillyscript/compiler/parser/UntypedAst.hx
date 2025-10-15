@@ -17,7 +17,7 @@ enum UntypedAst {
 	List(untypedList: UntypedList);
 	Dictionary(untypedDictionary: UntypedDictionary);
 	Call(calledAst: Positioned<UntypedAst>, arguments: Array<{ name: Null<String>, value: Positioned<UntypedAst> }>);
-	CustomSyntax(candidates: Array<CustomSyntaxId>, expressions: Array<CustomSyntaxScopeMatchResultExpression>);
+	CustomSyntax(candidates: Array<{ id: CustomSyntaxId, patternIndex: Int }>, expressions: Array<CustomSyntaxScopeMatchResultExpression>);
 }
 
 @:structInit

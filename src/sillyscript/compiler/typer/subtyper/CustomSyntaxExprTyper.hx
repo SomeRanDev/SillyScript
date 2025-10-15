@@ -15,6 +15,15 @@ using sillyscript.extensions.ArrayExt;
 typedef CustomSyntaxNamedExpression = { key: Positioned<String>, value: Positioned<TypedAst> };
 
 /**
+	Points to a specific pattern using an instance of `TypedCustomSyntaxDeclaration` and an `Int`
+	to represent the index of the pattern. 
+**/
+typedef TypedCustomSyntaxDeclarationAndPattern = {
+	declaration: TypedCustomSyntaxDeclaration,
+	patternIndex: Int
+};
+
+/**
 	Types an untyped AST expression of `CustomSyntax` to a `TypedAst` of `CustomSyntax`.
 **/
 class CustomSyntaxExprTyper {
@@ -24,7 +33,7 @@ class CustomSyntaxExprTyper {
 	public static function type(
 		typer: Typer,
 		ast: Positioned<UntypedAst>,
-		candidates: Array<CustomSyntaxId>,
+		candidates: Array<{ id: CustomSyntaxId, patternIndex: Int }>,
 		expressions: Array<CustomSyntaxScopeMatchResultExpression>
 	): TyperResult {
 		// Type the input expressions
@@ -35,7 +44,7 @@ class CustomSyntaxExprTyper {
 		}
 
 		// Collect the matching type candidate instances (and a map of their expression identifiers)
-		var newCandidateDeclarations: Array<TypedCustomSyntaxDeclaration>;
+		var newCandidateDeclarations: Array<TypedCustomSyntaxDeclarationAndPattern>;
 		var identifiedExpressions: Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>>;
 		switch(findCandidateDeclarations(typer, candidates, expressions, typedExpressions)) {
 			case Success({
@@ -51,7 +60,7 @@ class CustomSyntaxExprTyper {
 		// If multiple valid candidates pass typing, error...
 		if(newCandidateDeclarations.length > 1) {
 			final candidateNames = newCandidateDeclarations.map(function(customSyntax) {
-				return customSyntax.name.value;
+				return customSyntax.declaration.name.value;
 			});
 			return Error([{
 				value: AmbiguousCustomSyntaxCandidates(candidateNames),
@@ -61,7 +70,7 @@ class CustomSyntaxExprTyper {
 
 		// If none pass typing, but there was only one input candidate, error...
 		if(newCandidateDeclarations.length == 0 && candidates.length == 1) {
-			final syntax = typer.findTypedCustomSyntaxDeclaration(candidates[0]);
+			final syntax = typer.findTypedCustomSyntaxDeclaration(candidates[0].id);
 			return Error([{
 				value: InvalidTypesForCustomSyntax(syntax),
 				position: ast.position
@@ -72,7 +81,7 @@ class CustomSyntaxExprTyper {
 		if(newCandidateDeclarations.length == 0 && candidates.length > 1) {
 			final syntaxes: Array<TypedCustomSyntaxDeclaration> = [];
 			for(candidate in candidates) {
-				final syntax = typer.findTypedCustomSyntaxDeclaration(candidate);
+				final syntax = typer.findTypedCustomSyntaxDeclaration(candidate.id);
 				if(syntax != null) {
 					syntaxes.push(syntax);
 				}
@@ -93,7 +102,7 @@ class CustomSyntaxExprTyper {
 		}
 
 		// Get its identified expressions
-		final expressions = identifiedExpressions.get(candidate.id);
+		final expressions = identifiedExpressions.get(candidate.declaration.id);
 		if(expressions == null) {
 			return Error([{
 				value: CompilerError("final custom syntax candidate's identified expressions do not exist"),
@@ -103,7 +112,7 @@ class CustomSyntaxExprTyper {
 
 		// Return a typed `CustomSyntax` `TypedAst`!
 		return Success({
-			value: CustomSyntax(candidate, expressions),
+			value: CustomSyntax(candidate.declaration, candidate.patternIndex, expressions),
 			position: ast.position
 		});
 	}
@@ -150,15 +159,15 @@ class CustomSyntaxExprTyper {
 	**/
 	static function findCandidateDeclarations(
 		typer: Typer,
-		candidates: ReadOnlyArray<CustomSyntaxId>,
+		candidates: ReadOnlyArray<{ id: CustomSyntaxId, patternIndex: Int }>,
 		expressions: ReadOnlyArray<CustomSyntaxScopeMatchResultExpression>,
 		typedExpressions: ReadOnlyArray<{ typedExpression: Positioned<TypedAst>, type: SillyType }>
 	): PositionedResult<{
-		newCandidateDeclarations: Array<TypedCustomSyntaxDeclaration>,
+		newCandidateDeclarations: Array<TypedCustomSyntaxDeclarationAndPattern>,
 		identifiedExpressions: Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>>
 	}, TyperError> {
 		final errors = [];
-		final newCandidateDeclarations: Array<TypedCustomSyntaxDeclaration> = [];
+		final newCandidateDeclarations: Array<TypedCustomSyntaxDeclarationAndPattern> = [];
 		final identifiedExpressions:
 			Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>> = [];
 
@@ -194,22 +203,22 @@ class CustomSyntaxExprTyper {
 	**/
 	static function checkCustomSyntaxCandidate(
 		typer: Typer,
-		candidate: CustomSyntaxId,
+		candidate: { id: CustomSyntaxId, patternIndex: Int },
 		identifiedExpressions: Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>>,
 		expressions: ReadOnlyArray<CustomSyntaxScopeMatchResultExpression>,
 		typedExpressions: ReadOnlyArray<{ typedExpression: Positioned<TypedAst>, type: SillyType }>
-	): PositionedResult<Array<TypedCustomSyntaxDeclaration>, TyperError> {
-		final newCandidates: Array<TypedCustomSyntaxDeclaration> = [];
+	): PositionedResult<Array<TypedCustomSyntaxDeclarationAndPattern>, TyperError> {
+		final newCandidates: Array<TypedCustomSyntaxDeclarationAndPattern> = [];
 
-		final syntax = typer.findTypedCustomSyntaxDeclaration(candidate);
+		final syntax = typer.findTypedCustomSyntaxDeclaration(candidate.id);
 		if(syntax == null) {
 			// TODO: Should this be an error??
 			return Success([]);
 		}
 
-		final identifyExpressions = identifiedExpressions.get(candidate) ?? {
+		final identifyExpressions = identifiedExpressions.get(candidate.id) ?? {
 			final result = [];
-			identifiedExpressions.set(candidate, result);
+			identifiedExpressions.set(candidate.id, result);
 			result;
 		};
 
@@ -220,7 +229,7 @@ class CustomSyntaxExprTyper {
 			final expression = expressions[i];
 			final typedExpression = typedExpressions[i];
 
-			final identifier = expression.identifiers.get(candidate);
+			final identifier = expression.identifiers.get(candidate.id);
 			if(identifier == null) {
 				return Error([{
 					value: CompilerError("identifier for custom syntax could not be found in match result expression"),
@@ -254,7 +263,10 @@ class CustomSyntaxExprTyper {
 		}
 
 		if(valid) {
-			newCandidates.push(syntax);
+			newCandidates.push({
+				declaration: (syntax : TypedCustomSyntaxDeclaration),
+				patternIndex: candidate.patternIndex
+			});
 		}
 
 		return Success(newCandidates);

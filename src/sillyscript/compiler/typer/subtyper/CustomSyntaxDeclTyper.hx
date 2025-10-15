@@ -24,8 +24,11 @@ class CustomSyntaxDeclTyper {
 		final errors: Array<Positioned<TyperError>> = [];
 
 		final inputsMap: Map<String, { type: SillyType, count: Int }> = [];
+		final patternTypes: Array<Positioned<SillyType>> = [];
 		for(pattern in untypedCustomSyntax.value.patterns) {
-			for(token in pattern) {
+			patternTypes.push(pattern.returnType);
+
+			for(token in pattern.tokenPattern) {
 				switch(token) {
 					case ExpressionInput(name, type): {
 						if(inputsMap.exists(name.value)) {
@@ -71,7 +74,7 @@ class CustomSyntaxDeclTyper {
 		return Success(
 			untypedCustomSyntax.map(function(ucs) {
 				return new TypedCustomSyntaxDeclaration(
-					untypedCustomSyntax.value.name, scope, ucs.id, inputs
+					untypedCustomSyntax.value.name, ucs.id, scope, inputs, patternTypes
 				);
 			})
 		);

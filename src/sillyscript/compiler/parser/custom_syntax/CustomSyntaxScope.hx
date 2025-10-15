@@ -11,8 +11,11 @@ import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration;
 class CustomSyntaxScopeMatchResult {
 	/**
 		A list of candidates that match the parsed syntax.
+
+		`id` is the ID of the custom syntax.
+		`patternIndex` is the index of the pattern that was matched.
 	**/
-	public var possibilities(default, null): Array<CustomSyntaxId>;
+	public var possibilities(default, null): Array<{ id: CustomSyntaxId, patternIndex: Int }>;
 
 	/**
 		A list of expressions parsed while parsing the custom syntax.
@@ -67,18 +70,19 @@ class CustomSyntaxScope {
 		Adds a custom syntax to the tree of nodes.
 	**/
 	public function addSyntaxDeclaration(declaration: Positioned<UntypedCustomSyntaxDeclaration>) {
-		for(pattern in declaration.value.patterns) {
-			if(pattern.length <= 0) continue;
+		for(i in 0...declaration.value.patterns.length) {
+			final pattern = declaration.value.patterns[i];
+			if(pattern.tokenPattern.length <= 0) continue;
 
 			var currentNode: CustomSyntaxNode = startingNode;
-			for(token in pattern) {
+			for(token in pattern.tokenPattern) {
 				var csToken = switch(token) {
 					case ExpressionInput(_, _): CustomSyntaxToken.Expression;
 					case Token(token): CustomSyntaxToken.Token(token);
 				}
 				currentNode = currentNode.findOrCreateNextNode(csToken);
 				switch(token) {
-					case ExpressionInput(name, type): {
+					case ExpressionInput(name, _): {
 						currentNode.pushDeclarationExpressionIdentifier(declaration.value.id, name.value);
 					}
 					case _:
@@ -86,7 +90,7 @@ class CustomSyntaxScope {
 			}
 
 			if(currentNode != startingNode) {
-				currentNode.addCustomSyntaxEndCandidate(declaration.value.id);
+				currentNode.addCustomSyntaxEndCandidate(declaration.value.id, i);
 			}
 		}
 	}

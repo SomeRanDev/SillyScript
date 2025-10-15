@@ -5,20 +5,23 @@ import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.
 
 class TypedCustomSyntaxDeclaration {
 	public var name(default, null): Positioned<String>;
-	public var scope(default, null): Scope;
 	public var id(default, null): CustomSyntaxId;
+	public var scope(default, null): Scope;
 	public var inputs(default, null): Array<{ name: String, type: SillyType }>;
+	public var patternTypes(default, null): Array<Positioned<SillyType>>;
 
 	public function new(
 		name: Positioned<String>,
-		scope: Scope,
 		id: CustomSyntaxId,
-		inputs: Array<{ name: String, type: SillyType }>
+		scope: Scope,
+		inputs: Array<{ name: String, type: SillyType }>,
+		patternTypes: Array<Positioned<SillyType>>
 	) {
 		this.name = name;
-		this.scope = scope;
 		this.id = id;
+		this.scope = scope;
 		this.inputs = inputs;
+		this.patternTypes = patternTypes;
 	}
 
 	public function inputsAsMap(): Map<String, SillyType> {

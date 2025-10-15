@@ -24,6 +24,15 @@ enum CustomSyntaxDeclarationToken {
 }
 
 /**
+	Represents a `pattern` declaration within a custom syntax declaration.
+**/
+@:structInit
+class UntypedCustomSyntaxDeclarationPattern {
+	public var returnType(default, null): Positioned<SillyType>;
+	public var tokenPattern(default, null): ReadOnlyArray<CustomSyntaxDeclarationToken>;
+}
+
+/**
 	Represents a custom syntax declaration prior to the typing phase.
 **/
 class UntypedCustomSyntaxDeclaration {
@@ -31,13 +40,13 @@ class UntypedCustomSyntaxDeclaration {
 
 	public var name(default, null): Positioned<String>;
 	public var declarations(default, null): ReadOnlyArray<Positioned<UntypedDeclaration>>;
-	public var patterns(default, null): ReadOnlyArray<ReadOnlyArray<CustomSyntaxDeclarationToken>>;
+	public var patterns(default, null): ReadOnlyArray<UntypedCustomSyntaxDeclarationPattern>;
 	public var id(default, null): CustomSyntaxId;
 
 	public function new(
 		name: Positioned<String>,
 		declarations: ReadOnlyArray<Positioned<UntypedDeclaration>>,
-		patterns: ReadOnlyArray<ReadOnlyArray<CustomSyntaxDeclarationToken>>
+		patterns: ReadOnlyArray<UntypedCustomSyntaxDeclarationPattern>
 	) {
 		this.name = name;
 		this.declarations = declarations;

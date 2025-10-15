@@ -46,17 +46,17 @@ class CustomSyntaxDeclParser {
 
 		final declarations: Array<Positioned<UntypedDeclaration>> = [];
 		final errors: Array<Positioned<ParserError>> = [];
-		final patterns: Array<Array<CustomSyntaxDeclarationToken>> = [];
+		final patterns: Array<UntypedCustomSyntaxDeclarationPattern> = [];
 
 		while(true) {
 			// Check if we should stop parsing
-			final c = parser.peek();
-			if(c == DecrementIndent || c == EndOfFile) {
+			final c = parser.peekWithPosition();
+			if(c == null || c.value == DecrementIndent || c.value == EndOfFile) {
 				break;
 			}
 
 			// Check for declarations
-			switch(parser.peek()) {
+			switch(c.value) {
 				case Keyword(Def): {
 					switch(DefDeclParser.parseDef(parser)) {
 						case Success(result): {
@@ -74,6 +74,33 @@ class CustomSyntaxDeclParser {
 				}
 				case Keyword(Pattern): {
 					parser.expectOrFatal(Keyword(Pattern));
+
+					var returnType: Null<Positioned<SillyType>> = null;
+
+					switch(parser.peek()) {
+						case Arrow: {
+							returnIfError(parser.expect(Arrow));
+
+							switch(TypeParser.parseType(parser)) {
+								case Success(result): {
+									returnType = result;
+								}
+								case NoMatch: {
+									errors.push({
+										value: ExpectedType,
+										position: parser.here()
+									});
+								}
+								case Error(typeParseErrors): {
+									for(e in typeParseErrors) {
+										errors.push(e);
+									}
+								}
+							}
+						}
+						case _:
+					}
+
 					returnIfError(parser.expect(Colon));
 					returnIfError(parser.expect(IncrementIndent));
 
@@ -130,7 +157,18 @@ class CustomSyntaxDeclParser {
 
 					returnIfError(parser.expect(DecrementIndent));
 
-					patterns.push(tokens);
+					final returnType: Positioned<SillyType> = returnType ?? {
+						value: {
+							kind: Dictionary(SillyType.ANY),
+							nullable: false,
+							role: ""
+						},
+						position: c.position
+					};
+					patterns.push({
+						returnType: returnType,
+						tokenPattern: tokens
+					});
 				}
 				case _: {
 					return Error([{
