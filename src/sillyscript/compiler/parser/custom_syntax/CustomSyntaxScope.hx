@@ -109,6 +109,7 @@ class CustomSyntaxScope {
 		final parser = context.parser;
 		final expressions: Array<CustomSyntaxScopeMatchResultExpression> = [];
 
+		var tokensParsed = 0;
 		var node = startingNode;
 		var token = parser.peek();
 		while(token != null && token != EndOfFile) {
@@ -121,7 +122,10 @@ class CustomSyntaxScope {
 			}
 			var advance = true;
 			if(newNode == null) {
-				if(node.hasExpressionNextNode()) {
+				// Only allow an expression node if its NOT the first token UNLESS
+				// `preparsedExpression` is provided.
+				final allowExpression = tokensParsed > 0 || preparsedExpression != null;
+				if(allowExpression && node.hasExpressionNextNode()) {
 					// If `preparsedExpression` isn't `null`, let's use that first!
 					final result = if(preparsedExpression != null) {
 						final result = preparsedExpression;
@@ -168,6 +172,7 @@ class CustomSyntaxScope {
 
 			node = newNode;
 			token = parser.peek();
+			tokensParsed++;
 		}
 
 		if(node == null || node == startingNode) {

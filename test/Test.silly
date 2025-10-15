@@ -37,3 +37,8 @@ syntax Increment:
 	123++;
 
 123--;
+
+def Bla(a: int) -> dict:
+	a: a;
+
+Bla(a: 123);
