@@ -61,8 +61,34 @@ class Parser {
 		Generates a `Position` from `start` to `end` inclusive.
 	**/
 	function makePosition(start: Int, end: Int): Position {
-		final startToken = inputTokens.get(start);
-		final endToken = inputTokens.get(end);
+		if(start > end) {
+			return { fileIdentifier: -1, start: -1, end: -1 };
+		}
+
+		final startToken = {
+			var index = start;
+			while(index < end) {
+				switch(inputTokens.get(index)?.value) {
+					case IncrementIndent | DecrementIndent: {}
+					case _: break;
+				}
+				index++;
+			}
+			inputTokens.get(index);
+		};
+
+		final endToken = {
+			var index = end;
+			while(index > start) {
+				switch(inputTokens.get(index)?.value) {
+					case IncrementIndent | DecrementIndent: {}
+					case _: break;
+				}
+				index--;
+			}
+			inputTokens.get(index);
+		};
+
 		return if(startToken != null && endToken != null) {
 			startToken.position.merge(endToken.position);
 		} else {
@@ -73,8 +99,8 @@ class Parser {
 	/**
 		Creates a `Position` starting from `start` and ending at `currentIndex`.
 	**/
-	inline function makePositionFrom(start: Int): Position {
-		return makePosition(start, currentIndex);
+	inline function makePositionFrom(start: Int, inclusive: Bool): Position {
+		return makePosition(start, inclusive ? currentIndex : currentIndex - 1);
 	}
 
 	/**

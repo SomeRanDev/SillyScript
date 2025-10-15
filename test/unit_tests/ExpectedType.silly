@@ -4,7 +4,7 @@ Parser Error: Expected a type.
  9 | 
 10 | def Something() -> :
                         ^ this should be a type
-11 | 	123;
+11 |    123;
 ###
 
 def Something() -> :

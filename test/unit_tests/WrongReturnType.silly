@@ -1,32 +1,26 @@
 ### error
 Typing Error: A value of type `any list` cannot be returned as type `any dict`.
  --> test/unit_tests/WrongReturnType.silly
-31 | 
-32 | def Something(num: int, s: string) -> dict:
+25 | 
+26 | def Something(num: int, s: string) -> dict:
      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot return `any list` as `any dict`
-33 | 	num;
+27 |    num;
+     ^^^^^^^
+28 |    s;
      ^^^^^
-34 | 	s;
-     ^^^
-35 | 
-     ^
-36 | Something(123, "Goodbye");
-     ^^^^^^^^^
-37 | 
+29 | 
 
 Typing Error: There is no declaration with this name.
  --> test/unit_tests/WrongReturnType.silly
-35 | 
-36 | Something(123, "Goodbye");
+29 | 
+30 | Something(123, "Goodbye");
      ^^^^^^^^^ Something is undefined
-37 | 
 
 Typing Error: Cannot call this expression of unknown type.
  --> test/unit_tests/WrongReturnType.silly
-35 | 
-36 | Something(123, "Goodbye");
-              ^^^^^^^^^^^^^^^^^ cannot call this expression of unknown type
-37 |
+29 | 
+30 | Something(123, "Goodbye");
+              ^^^^^^^^^^^^^^^^ cannot call this expression of unknown type
 ###
 
 def Something(num: int, s: string) -> dict:

@@ -1,10 +1,9 @@
 ### error
 Typing Error: A value of type `string` cannot be passed to type `int`.
  --> test/unit_tests/WrongArgumentType.silly
-13 | 
-14 | Something("Hello", "Goodbye");
+12 | 
+13 | Something("Hello", "Goodbye");
                ^^^^^^^ cannot pass `string` to `int`
-15 |
 ###
 
 def Something(num: int, s: string) -> list:

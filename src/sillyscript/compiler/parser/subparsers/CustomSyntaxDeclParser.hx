@@ -190,7 +190,7 @@ class CustomSyntaxDeclParser {
 
 		return Success({
 			value: new UntypedCustomSyntaxDeclaration(name, declarations, patterns),
-			position: parser.makePositionFrom(start)
+			position: parser.makePositionFrom(start, false)
 		});
 	}
 

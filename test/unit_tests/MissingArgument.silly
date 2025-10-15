@@ -1,10 +1,9 @@
 ### error
 Typing Error: Missing argument #2 of Something(s).
  --> test/unit_tests/MissingArgument.silly
-13 | 
-14 | Something(123);
-              ^^^^^^ missing argument s
-15 |
+12 | 
+13 | Something(123);
+              ^^^^^ missing argument s
 ###
 
 def Something(num: int, s: string) -> list:

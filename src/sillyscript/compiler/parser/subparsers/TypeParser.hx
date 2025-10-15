@@ -105,7 +105,7 @@ class TypeParser {
 				nullable: nullable,
 				role: role,
 			},
-			position: parser.makePositionFrom(start)
+			position: parser.makePositionFrom(start, false)
 		});
 	}
 

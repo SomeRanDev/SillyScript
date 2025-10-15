@@ -199,7 +199,7 @@ class Lexer {
 				indentStack.popTop();
 				tokens.push({
 					value: Token.DecrementIndent,
-					position: makePositionFrom(start)
+					position: makePosition(start, currentPosition - 1),
 				});
 			}
 		}

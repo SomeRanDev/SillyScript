@@ -98,7 +98,7 @@ class DefDeclParser {
 				returnType: returnType,
 				content: content
 			},
-			position: parser.makePositionFrom(start)
+			position: parser.makePositionFrom(start, false)
 		});
 	}
 

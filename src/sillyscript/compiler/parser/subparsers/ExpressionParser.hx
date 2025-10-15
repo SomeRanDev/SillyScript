@@ -157,7 +157,7 @@ class ExpressionParser {
 					items: dictionaryEntries, scope: { declarations: declarations, syntaxScope: context.syntaxScope }
 				});
 			},
-			position: parser.makePositionFrom(start)
+			position: parser.makePositionFrom(start, false)
 		});
 	}
 
@@ -431,7 +431,7 @@ class ExpressionParser {
 		
 		return Success({
 			value: Call(calledAst, arguments),
-			position: parser.makePositionFrom(start)
+			position: parser.makePositionFrom(start, false)
 		});
 	}
 }

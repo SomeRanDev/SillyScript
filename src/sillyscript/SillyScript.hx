@@ -42,6 +42,7 @@ class SillyScript {
 		`fileIdentifier` is a unique `String` used to identify the file when generating errors.
 	**/
 	public function compile(input: String, fileIdentifierString: String): CompileResult {
+		final input = ~/\t/g.replace(~/\r/g.replace(StringTools.trim(input), ""), "   ");
 		final fileId = fileIdentifier.registerFile(fileIdentifierString, input);
 		final context = new Context(fileId);
 
