@@ -70,3 +70,13 @@ def Blabla(a: RPGMaker) -> dict:
 	a: a;
 
 Blabla(mv);
+
+syntax Bla:
+	pattern:
+		<a: int>!!!
+
+	pattern:
+		<a: string>???
+
+123!!!;
+"fdsfd"???;

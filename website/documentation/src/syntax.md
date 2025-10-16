@@ -60,39 +60,23 @@ Lists and dictionaries can be mixed by adding them as sub-elements to each other
 
 #### List
 
-These are the two syntaxes that can be used to add a `List` value.
-
-doublecodeblock:
-	Use the blank colon syntax to create a new scope for a list. 
-	```SillyScript
-	:
-		1;
-		2;
-		3;
-	```
-
-	Alternatively, use the `[...]` syntax for a list.
-	```SillyScript
-	[1, 2, 3]
-	```
+Use the blank colon syntax to create a new scope for a list. 
+```SillyScript
+:
+	1;
+	2;
+	3;
+```
 
 #### Dictionary
 
-These are the two syntaxes that can be used to add a `Dictionary` value.
-
-doublecodeblock:
-	Use the blank colon syntax to create a new scope for a dictionary.
-	```SillyScript
-	:
-		key1: 1;
-		something: 2;
-		bla: 3;
-	```
-
-	Alternatively, use the `{...}` syntax for a dictionary.
-	```SillyScript
-	{ key1: 1, something: 2, bla: 3 }
-	```
+Use the blank colon syntax to create a new scope for a dictionary.
+```SillyScript
+:
+	key1: 1;
+	something: 2;
+	bla: 3;
+```
 
 #### Combination
 
