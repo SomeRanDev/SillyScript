@@ -134,6 +134,7 @@ class Lexer {
 			case "\n": { advance(); handleSpace(); }
 			case ";": { handleSingleToken(Token.Semicolon); }
 			case ":": { handleSingleToken(Token.Colon); }
+			case "=": { handleSingleToken(Token.Equals); }
 			case "(": { handleSingleToken(Token.ParenthesisOpen); }
 			case ")": { handleSingleToken(Token.ParenthesisClose); }
 			case "{": { handleSingleToken(Token.SquiggleOpen); }

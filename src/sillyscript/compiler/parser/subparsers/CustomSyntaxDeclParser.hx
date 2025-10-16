@@ -1,5 +1,6 @@
 package sillyscript.compiler.parser.subparsers;
 
+import sillyscript.compiler.parser.subparsers.ExpressionParser.ExpressionParserContext;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.parser.UntypedAst.UntypedDeclaration;
@@ -12,9 +13,10 @@ import sillyscript.Positioned;
 **/
 @:access(sillyscript.compiler.parser.Parser)
 class CustomSyntaxDeclParser {
-	public static function parseCustomSyntaxDeclaration(parser: Parser): ParseResult<
+	public static function parseCustomSyntaxDeclaration(context: ExpressionParserContext): ParseResult<
 		Positioned<UntypedCustomSyntaxDeclaration>
 	> {
+		final parser = context.parser;
 		final start = parser.currentIndex;
 
 		switch(parser.peek()) {
@@ -55,7 +57,7 @@ class CustomSyntaxDeclParser {
 			// Check for declarations
 			switch(c.value) {
 				case Keyword(Def): {
-					switch(DefDeclParser.parseDef(parser)) {
+					switch(DefDeclParser.parseDef(context)) {
 						case Success(result): {
 							declarations.push(result.map(d -> UntypedDeclaration.Def(d)));
 							continue;

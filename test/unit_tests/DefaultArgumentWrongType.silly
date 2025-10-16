@@ -1,0 +1,25 @@
+### error
+Typing Error: A value of type `string` cannot be passed to type `int`.
+ --> test/unit_tests/DefaultArgumentWrongType.silly
+21 | 
+22 | def Bla(one: int = "Hello") -> dict:
+             ^^^^^^^^^^^^^^^^^^ cannot pass `string` to `int`
+23 |    one: one;
+
+Typing Error: There is no declaration with this name.
+ --> test/unit_tests/DefaultArgumentWrongType.silly
+24 | 
+25 | Bla();
+     ^^^ Bla is undefined
+
+Typing Error: Cannot call this expression of unknown type.
+ --> test/unit_tests/DefaultArgumentWrongType.silly
+24 | 
+25 | Bla();
+        ^^ cannot call this expression of unknown type
+###
+
+def Bla(one: int = "Hello") -> dict:
+	one: one;
+
+Bla();

@@ -20,6 +20,7 @@ enum Token {
 	Colon;
 	Comma;
 	Arrow;
+	Equals;
 	ExclamationPoint;
 	QuestionMark;
 	ParenthesisOpen;

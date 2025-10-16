@@ -66,17 +66,9 @@ enum RPGMaker -> string:
 	mv;
 	mz;
 
-def Blabla(a: RPGMaker) -> dict:
+def Blabla(a: RPGMaker = mz) -> dict:
 	a: a;
 
-Blabla(mv);
+Blabla();
 
-syntax Bla:
-	pattern:
-		<a: int>!!!
 
-	pattern:
-		<a: string>???
-
-123!!!;
-"fdsfd"???;

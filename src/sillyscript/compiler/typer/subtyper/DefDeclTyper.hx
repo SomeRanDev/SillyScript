@@ -7,6 +7,7 @@ import sillyscript.compiler.typer.ast.TypedDef;
 import sillyscript.compiler.typer.TyperError;
 import sillyscript.extensions.Nothing;
 import sillyscript.Positioned;
+using sillyscript.extensions.ArrayExt;
 
 /**
 	Handles the typing of `def` declarations.
@@ -22,27 +23,59 @@ class DefDeclTyper {
 	): PositionedResult<Positioned<TypedDef>, TyperError> {
 		final errors = [];
 
-		final typedArguments: Array<Positioned<{ name: Positioned<String>, type: Positioned<SillyType> }>> = [];
+		final typedArguments: Array<Positioned<TypedDefArgument>> = [];
 		for(argument in untypedDef.value.arguments) {
 			final realType = switch(TypeTyper.typeType(typer, argument.value.type)) {
 				case Success(type): type;
 				case Error(typingErrors): {
-					for(e in typingErrors) {
-						errors.push(e);
-					}
+					errors.pushArray(typingErrors);
 					continue;
 				}
 			}
+
+			final typedDefaultValue = if(argument.value.defaultValue != null) {
+				switch(typer.typeAst(argument.value.defaultValue)) {
+					case Success(typedAst): typedAst;
+					case Error(typeErrors): {
+						errors.pushArray(typeErrors);
+						null;
+					}
+				}
+			} else {
+				null;
+			}
+
+			if(typedDefaultValue != null) {
+				switch(SillyType.fromTypedAst(typedDefaultValue)) {
+					case Success(type): {
+						switch(realType.canReceiveType(type)) {
+							case Success(Nothing): {}
+							case Error(typeErrors): {
+								errors.pushArray(typeErrors.map(e -> ({
+									value: e, position: argument.position
+								} : Positioned<TyperError>)));
+							}
+						}
+					}
+					case Error(typeErrors): errors.pushArray(typeErrors);
+				}
+			}
+
 			typedArguments.push({
 				value: {
 					name: argument.value.name,
 					type: {
 						value: realType,
 						position: argument.value.type.position
-					}
+					},
+					defaultValue: typedDefaultValue
 				},
 				position: argument.position
 			});
+		}
+
+		if(errors.length > 0) {
+			return Error(errors);
 		}
 
 		final returnTypeTypingResult = TypeTyper.typeType(typer, untypedDef.value.returnType);
@@ -51,10 +84,8 @@ class DefDeclTyper {
 				value: type,
 				position: untypedDef.position
 			}
-			case Error(typingErrors): {
-				for(e in typingErrors) {
-					errors.push(e);
-				}
+			case Error(typeErrors): {
+				errors.pushArray(typeErrors);
 				return Error(errors);
 			}
 		}

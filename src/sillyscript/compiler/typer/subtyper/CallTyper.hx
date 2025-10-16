@@ -92,8 +92,13 @@ class CallTyper {
 				for(i in 0...argumentSlots.length) {
 					final a = argumentSlots[i];
 					if(a == null) {
-						missingArgument = i;
-						break;
+						final defaultValue = def.value.arguments.get(i)?.value.defaultValue;
+						if(defaultValue == null) {
+							missingArgument = i;
+							break;
+						} else {
+							orderedTypedArguments.push(defaultValue);
+						}
 					} else {
 						final defArgument = def.value.arguments.get(i);
 						if(defArgument != null) {

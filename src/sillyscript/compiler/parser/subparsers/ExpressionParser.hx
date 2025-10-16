@@ -69,7 +69,7 @@ class ExpressionParser {
 			// Check for declarations
 			switch(parser.peek()) {
 				case Keyword(Def): {
-					switch(DefDeclParser.parseDef(parser)) {
+					switch(DefDeclParser.parseDef(context)) {
 						case Success(result): {
 							declarations.push(result.map(d -> Def(d)));
 							continue;
@@ -99,7 +99,7 @@ class ExpressionParser {
 					}
 				}
 				case Keyword(Syntax): {
-					switch(CustomSyntaxDeclParser.parseCustomSyntaxDeclaration(parser)) {
+					switch(CustomSyntaxDeclParser.parseCustomSyntaxDeclaration(context)) {
 						case Success(result): {
 							declarations.push(result.map(cs -> CustomSyntax(cs)));
 							context.getOrMakeSyntaxScope().addSyntaxDeclaration(result);

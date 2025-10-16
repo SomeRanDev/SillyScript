@@ -1,23 +1,21 @@
 ### error
-Typing Error: A value of type `int list` cannot be returned as type `int`.
+Typing Error: This type cannot have a subtype.
  --> test/unit_tests/TypeCannotHaveSubtype.silly
-23 | 
-24 | def Something(a: int int) -> int:
-     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot return `int list` as `int`
-25 |    123;
-     ^^^^^^^
-26 | 
+21 | 
+22 | def Something(a: int int) -> int:
+                          ^^^ this type should not have another type in front of it
+23 |    123;
 
 Typing Error: There is no declaration with this name.
  --> test/unit_tests/TypeCannotHaveSubtype.silly
-26 | 
-27 | Something(123);
+24 | 
+25 | Something(123);
      ^^^^^^^^^ Something is undefined
 
 Typing Error: Cannot call this expression of unknown type.
  --> test/unit_tests/TypeCannotHaveSubtype.silly
-26 | 
-27 | Something(123);
+24 | 
+25 | Something(123);
               ^^^^^ cannot call this expression of unknown type
 ###
 

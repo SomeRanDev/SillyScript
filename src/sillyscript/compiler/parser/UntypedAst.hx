@@ -42,10 +42,16 @@ class UntypedScope {
 	public var syntaxScope(default, null): Null<CustomSyntaxScope>;
 }
 
+typedef UntypedDefArgument = {
+	name: Positioned<String>,
+	type: Positioned<AmbiguousType>,
+	defaultValue: Null<Positioned<UntypedAst>>
+};
+
 @:structInit
 class UntypedDefDeclaration {
 	public var name(default, null): String;
-	public var arguments(default, null): Array<Positioned<{ name:Positioned<String>, type:Positioned<AmbiguousType> }>>;
+	public var arguments(default, null): Array<Positioned<UntypedDefArgument>>;
 	public var returnType(default, null): Positioned<AmbiguousType>;
 	public var content(default, null): Positioned<UntypedAst>;
 

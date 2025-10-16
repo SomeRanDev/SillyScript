@@ -1,10 +1,10 @@
 ### error
-Typing Error: There is no declaration with this name.
+Typing Error: This type name is not known.
  --> test/unit_tests/MisspelledEnum.silly
+38 | 
 39 | def TakeNumber(num: Nombers) -> dict:
+                         ^^^^^^^ this type does not exist
 40 |    num: num;
-             ^^^ num is undefined
-41 | 
 
 Typing Error: There is no declaration with this name.
  --> test/unit_tests/MisspelledEnum.silly

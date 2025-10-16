@@ -1,5 +1,6 @@
 package sillyscript.compiler.parser.subparsers;
 
+import sillyscript.compiler.parser.subparsers.ExpressionParser.ExpressionParserContext;
 import sillyscript.compiler.parser.UntypedAst.UntypedDefDeclaration;
 import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Positioned;
@@ -10,7 +11,8 @@ import sillyscript.compiler.parser.ParserResult.ParseResult;
 **/
 @:access(sillyscript.compiler.parser.Parser)
 class DefDeclParser {
-	public static function parseDef(parser: Parser): ParseResult<Positioned<UntypedDefDeclaration>> {
+	public static function parseDef(context: ExpressionParserContext): ParseResult<Positioned<UntypedDefDeclaration>> {
+		final parser = context.parser;
 		final start = parser.currentIndex;
 
 		switch(parser.peek()) {
@@ -41,7 +43,7 @@ class DefDeclParser {
 		final arguments = [];
 		final errors = [];
 		while(parser.peek() != ParenthesisClose) {
-			switch(parseArgument(parser)) {
+			switch(parseArgument(context)) {
 				case Success(result): arguments.push(result);
 				case NoMatch: {}
 				case Error(parseErrors): {
@@ -100,41 +102,62 @@ class DefDeclParser {
 		});
 	}
 
-	static function parseArgument(parser: Parser): ParseResult<Positioned<{
+	static function parseArgument(context: ExpressionParserContext): ParseResult<Positioned<{
 		name: Positioned<String>,
-		type: Positioned<AmbiguousType>
+		type: Positioned<AmbiguousType>,
+		defaultValue: Null<Positioned<UntypedAst>>
 	}>> {
+		final parser = context.parser;
 		final tokenWithPosition = parser.peekWithPosition();
 		if(tokenWithPosition == null) return NoMatch;
 
-		return switch(tokenWithPosition.value) {
+		final name = switch(tokenWithPosition.value) {
 			case Identifier(identifier) if(parser.peek(1) == Colon): {
 				parser.expectOrFatal(Identifier(identifier));
 				parser.expectOrFatal(Colon);
-				
-				switch(TypeParser.parseType(parser)) {
-					case Success(result): {
-						final identifierWithPosition: Positioned<String> = {
-							value: identifier,
-							position: tokenWithPosition.position
-						};
-						Success({
-							value: { name: identifierWithPosition, type: result },
-							position: tokenWithPosition.position.merge(result.position)
-						});
-					}
-					case NoMatch: {
-						Error([{
-							value: ExpectedType,
-							position: parser.here()
-						}]);
-					}
-					case Error(errors): {
-						Error(errors);
-					}
+				identifier;
+			}
+			case _: return NoMatch;
+		}
+
+		final type = switch(TypeParser.parseType(parser)) {
+			case Success(result): {
+				result;
+			}
+			case NoMatch: {
+				return Error([{
+					value: ExpectedType,
+					position: parser.here()
+				}]);
+			}
+			case Error(errors): {
+				return Error(errors);
+			}
+		}
+
+		final expression = switch(parser.peek()) {
+			case Equals: {
+				parser.expectOrFatal(Equals);
+
+				switch(ExpressionParser.parseExpression(context, false)) {
+					case Success(expression): expression;
+					case NoMatch: return Error([{ value: ExpectedExpression, position: parser.here() }]);
+					case Error(error): return Error(error);
 				}
 			}
-			case _: NoMatch;
+			case _: {
+				null;
+			}
 		}
+
+		final nameWithPosition: Positioned<String> = {
+			value: name,
+			position: tokenWithPosition.position
+		};
+
+		return Success({
+			value: { name: nameWithPosition, type: type, defaultValue: expression },
+			position: tokenWithPosition.position.merge(expression != null ? expression.position : type.position),
+		});
 	}
 }
