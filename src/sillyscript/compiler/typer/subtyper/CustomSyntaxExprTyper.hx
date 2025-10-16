@@ -140,9 +140,7 @@ class CustomSyntaxExprTyper {
 					});
 				}
 				case Error(typingErrors): {
-					for(error in typingErrors) {
-						errors.push(error);
-					}
+					errors.pushArray(typingErrors);
 				}
 			}
 		}
@@ -182,9 +180,7 @@ class CustomSyntaxExprTyper {
 					}
 				}
 				case Error(candidateCheckErrors): {
-					for(e in candidateCheckErrors) {
-						errors.push(e);
-					}
+					errors.pushArray(candidateCheckErrors);
 				}
 			}
 		}

@@ -7,6 +7,7 @@ import sillyscript.compiler.parser.UntypedAst.UntypedDeclaration;
 import sillyscript.compiler.typer.SillyType;
 import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Positioned;
+using sillyscript.extensions.ArrayExt;
 
 /**
 	Handles the parsing of `def` declarations.
@@ -64,9 +65,7 @@ class CustomSyntaxDeclParser {
 						}
 						case NoMatch: {}
 						case Error(defParserErrors): {
-							for(e in defParserErrors) {
-								errors.push(e);
-							}
+							errors.pushArray(defParserErrors);
 							continue;
 						}
 					}
@@ -91,9 +90,7 @@ class CustomSyntaxDeclParser {
 									});
 								}
 								case Error(typeParseErrors): {
-									for(e in typeParseErrors) {
-										errors.push(e);
-									}
+									errors.pushArray(typeParseErrors);
 								}
 							}
 						}

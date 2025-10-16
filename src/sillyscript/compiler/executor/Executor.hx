@@ -37,7 +37,7 @@ class Executor {
 				for(item in items) {
 					switch(convertTypedAstToData(item)) {
 						case Success(typedAst): typedEntries.push(typedAst);
-						case Error(itemErrors): for(e in itemErrors) errors.push(e);
+						case Error(itemErrors): errors.pushArray(itemErrors);
 					}
 				}
 				if(errors.length > 0) {
@@ -55,7 +55,7 @@ class Executor {
 							value: { key: item.value.key, value: dataOutput },
 							position: item.position
 						});
-						case Error(itemErrors): for(e in itemErrors) errors.push(e);
+						case Error(itemErrors): errors.pushArray(itemErrors);
 					}
 				}
 				if(errors.length > 0) {
@@ -157,9 +157,7 @@ class Executor {
 							position: expression.value.position
 						});
 						case Error(itemErrors): {
-							for(e in itemErrors) {
-								errors.push(e);
-							}
+							errors.pushArray(itemErrors);
 						}
 					}
 				}

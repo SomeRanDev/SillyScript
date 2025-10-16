@@ -5,6 +5,7 @@ import sillyscript.compiler.parser.UntypedAst.UntypedDefDeclaration;
 import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Positioned;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
+using sillyscript.extensions.ArrayExt;
 
 /**
 	Handles the parsing of `def` declarations.
@@ -47,9 +48,7 @@ class DefDeclParser {
 				case Success(result): arguments.push(result);
 				case NoMatch: {}
 				case Error(parseErrors): {
-					for(e in parseErrors) {
-						errors.push(e);
-					}
+					errors.pushArray(parseErrors);
 				}
 			}
 

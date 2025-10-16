@@ -1,15 +1,14 @@
 package sillyscript.compiler.parser.subparsers;
 
-import haxe.CallStack;
-import sillyscript.compiler.parser.subparsers.DefDeclParser;
 import haxe.ds.Either;
 import sillyscript.compiler.parser.custom_syntax.CustomSyntaxScope;
-import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
+import sillyscript.compiler.parser.subparsers.DefDeclParser;
 import sillyscript.compiler.parser.UntypedAst.UntypedDeclaration;
 import sillyscript.compiler.parser.UntypedAst.UntypedDictionaryEntry;
 import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Positioned;
+using sillyscript.extensions.ArrayExt;
 
 /**
 	Used internally by `parseListOrDictionaryPostColonIdent` to track whether a list or dictionary 
@@ -76,9 +75,7 @@ class ExpressionParser {
 						}
 						case NoMatch: {}
 						case Error(defParserErrors): {
-							for(e in defParserErrors) {
-								errors.push(e);
-							}
+							errors.pushArray(defParserErrors);
 							continue;
 						}
 					}
@@ -91,9 +88,7 @@ class ExpressionParser {
 						}
 						case NoMatch: {}
 						case Error(enumParserErrors): {
-							for(e in enumParserErrors) {
-								errors.push(e);
-							}
+							errors.pushArray(enumParserErrors);
 							continue;
 						}
 					}
@@ -107,9 +102,7 @@ class ExpressionParser {
 						}
 						case NoMatch: {}
 						case Error(syntaxParserErrors): {
-							for(e in syntaxParserErrors) {
-								errors.push(e);
-							}
+							errors.pushArray(syntaxParserErrors);
 							continue;
 						}
 					}
@@ -144,9 +137,7 @@ class ExpressionParser {
 					break;
 				}
 				case Error(entryParseErrors): {
-					for(e in entryParseErrors) {
-						errors.push(e);
-					}
+					errors.pushArray(entryParseErrors);
 					break;
 				}
 			}

@@ -3,6 +3,7 @@ package sillyscript.compiler.transpiler;
 import sillyscript.compiler.executor.DataOutput;
 import sillyscript.compiler.transpiler.Transpiler.TranspilerResult;
 import sillyscript.Positioned;
+using sillyscript.extensions.ArrayExt;
 
 class JsonTranspiler extends Transpiler {
 	public function transpile(): TranspilerResult {
@@ -42,7 +43,7 @@ class JsonTranspiler extends Transpiler {
 							buffer.add("\t");
 							buffer.add(content);
 						}
-						case Error(transpileErrors): for(e in transpileErrors) errors.push(e);
+						case Error(transpileErrors): errors.pushArray(transpileErrors);
 					}
 				}
 				buffer.add("\n" + tabs + "]");
@@ -67,7 +68,9 @@ class JsonTranspiler extends Transpiler {
 							buffer.add("\": ");
 							buffer.add(content);
 						}
-						case Error(transpileErrors): for(e in transpileErrors) errors.push(e);
+						case Error(transpileErrors): {
+							errors.pushArray(transpileErrors);
+						}
 					}
 				}
 				buffer.add("\n" + tabs + "}");

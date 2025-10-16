@@ -12,6 +12,7 @@ import sillyscript.compiler.typer.TypedAst.TypedDictionaryEntry;
 import sillyscript.compiler.typer.TyperError;
 import sillyscript.extensions.Stack;
 import sillyscript.Positioned;
+using sillyscript.extensions.ArrayExt;
 
 /**
 	The resulting type used by the `Typer`.
@@ -132,7 +133,7 @@ class Typer {
 				for(item in items) {
 					switch(typeAst(item)) {
 						case Success(typedAst): typedEntries.push(typedAst);
-						case Error(itemErrors): for(e in itemErrors) errors.push(e);
+						case Error(itemErrors): errors.pushArray(itemErrors);
 					}
 				}
 				popScope();
@@ -159,7 +160,7 @@ class Typer {
 							value: { key: item.value.key, value: typedAst },
 							position: item.position
 						});
-						case Error(itemErrors): for(e in itemErrors) errors.push(e);
+						case Error(itemErrors): errors.pushArray(itemErrors);
 					}
 				}
 				popScope();

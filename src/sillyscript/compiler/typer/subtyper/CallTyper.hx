@@ -21,7 +21,7 @@ class CallTyper {
 		final positionedTypedAst = switch(typer.typeAst(calledAst)) {
 			case Success(called): called;
 			case Error(itemErrors): {
-				for(e in itemErrors) errors.push(e);
+				errors.pushArray(itemErrors);
 				null;
 			}
 		}
@@ -34,9 +34,7 @@ class CallTyper {
 					final argumentType = switch(SillyType.fromTypedAst(typedArgument)) {
 						case Success(type): type;
 						case Error(typingError): {
-							for(e in typingError) {
-								errors.push(e);
-							}
+							errors.pushArray(typingError);
 							SillyType.ANY;
 						}
 					}
@@ -56,7 +54,7 @@ class CallTyper {
 					}
 				}
 				case Error(itemErrors): {
-					for(e in itemErrors) errors.push(e);
+					errors.pushArray(itemErrors);
 					null;
 				}
 			}
