@@ -1,5 +1,6 @@
 package sillyscript.compiler.parser.subparsers;
 
+import haxe.ds.Either;
 import sillyscript.compiler.typer.SillyTypeKind;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.typer.SillyType;
@@ -14,8 +15,8 @@ class TypeParser {
 	/**
 		Parses an entire SillyScript type.
 	**/
-	public static function parseType(parser: Parser): ParseResult<Positioned<SillyType>> {
-		final types: Array<Positioned<SillyType>> = [];
+	public static function parseType(parser: Parser): ParseResult<Positioned<AmbiguousType>> {
+		final types: Array<Positioned<AmbiguousType>> = [];
 		while(true) {
 			switch(parseTypeNameAndSuffixes(parser)) {
 				case Success(result): types.push(result);
@@ -35,13 +36,26 @@ class TypeParser {
 			final second = types.get(1);
 			if(first == null || second == null) continue;
 
-			var newType = second.value.withSubtype(first.value);
+			var newType = second.value.withSubtype(second.position, first);
 			if(newType == null) {
 				newType = second.value;
-				errors.push({
-					value: TypeCannotHaveSubtype(second.value.kind),
-					position: second.position
-				});
+
+				switch(second.value) {
+					case Known(type): {
+						errors.push({
+							value: TypeCannotHaveSubtype(type.kind),
+							position: second.position
+						});
+					}
+					case _: {
+						// `withSubtype` can only return `null` when `self` is `Known`.
+						// Therefore this will never execute.
+						errors.push({
+							value: CompilerError("withSubtype returned `null` on unknown type."),
+							position: second.position
+						});
+					}
+				}
 			}
 
 			final newPosition = first.position.merge(second.position);
@@ -67,7 +81,7 @@ class TypeParser {
 	/**
 		Parses the type name, its role, and whether it's nullable (has `?` at end).
 	**/
-	static function parseTypeNameAndSuffixes(parser: Parser): ParseResult<Positioned<SillyType>> {
+	static function parseTypeNameAndSuffixes(parser: Parser): ParseResult<Positioned<AmbiguousType>> {
 		final start = parser.currentIndex;
 
 		final kind = switch(parseTypeName(parser)) {
@@ -100,16 +114,23 @@ class TypeParser {
 		}
 
 		return Success({
-			value: {
-				kind: kind.value,
-				nullable: nullable,
-				role: role,
+			value: switch(kind.value) {
+				case Left(knownKind): Known({
+					kind: knownKind,
+					nullable: nullable,
+					role: role,
+				});
+				case Right(unknownName): Unknown(unknownName, {
+					kind: Any,
+					nullable: nullable,
+					role: role,
+				});
 			},
 			position: parser.makePositionFrom(start, false)
 		});
 	}
 
- 	static function parseTypeName(parser: Parser): ParseResult<Positioned<SillyTypeKind>> {
+ 	static function parseTypeName(parser: Parser): ParseResult<Positioned<Either<SillyTypeKind, Positioned<String>>>> {
 		final peekToken = parser.peekWithPosition();
 		if(peekToken == null) return NoMatch;
 
@@ -119,14 +140,14 @@ class TypeParser {
 		}
 
 		final result = switch(identifier) {
-			case "any": Any;
-			case "bool": Bool;
-			case "int": Int;
-			case "float": Float;
-			case "string": String;
-			case "list": List(SillyType.ANY);
-			case "dict": Dictionary(SillyType.ANY);
-			case _: return NoMatch;
+			case "any": Left(Any);
+			case "bool": Left(Bool);
+			case "int": Left(Int);
+			case "float": Left(Float);
+			case "string": Left(String);
+			case "list": Left(List(SillyType.ANY));
+			case "dict": Left(Dictionary(SillyType.ANY));
+			case identifier: Right(({ value: identifier, position: peekToken.position } : Positioned<String>));
 		}
 
 		parser.advance();

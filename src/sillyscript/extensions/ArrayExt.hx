@@ -13,4 +13,13 @@ class ArrayExt {
 			null;
 		}
 	}
+
+	/**
+		Pushes the elements in `other` to the end of `self`.
+	**/
+	public static inline function pushArray<T>(self: Array<T>, other: Array<T>) {
+		for(element in other) {
+			self.push(element);
+		}
+	}
 }

@@ -22,6 +22,8 @@ enum abstract SillyTypeMatchingAttributeFlags(Int) to Int {
 @:structInit
 class SillyType {
 	public static final ANY: SillyType = { kind: Any, nullable: false, role: null };
+	public static final NULL: SillyType = { kind: Null, nullable: false, role: null };
+	public static final INT: SillyType = { kind: Int, nullable: false, role: null };
 
 	public var kind(default, null): SillyTypeKind;
 	public var nullable(default, null): Bool;
@@ -36,6 +38,17 @@ class SillyType {
 			case _: false;
 		}
 		return kind.toString() + (role != null ? "!" + role : "") + (nullable && !isNull ? "?" : "");
+	}
+
+	/**
+		Returns a copy of this `SillyType` with kind set to `newKind`.
+	**/
+	public function withKind(newKind: SillyTypeKind): SillyType {
+		return {
+			kind: newKind,
+			nullable: nullable,
+			role: role
+		};
 	}
 
 	/**
@@ -243,6 +256,9 @@ class SillyType {
 			}
 			case DefArgumentIdentifier(typedDef, argumentIndex): {
 				typedDef.value.arguments[argumentIndex].value.type.value;
+			}
+			case EnumCaseIdentifier(enumDecl, _): {
+				{ kind: Enum(enumDecl), nullable: false, role: null };
 			}
 			case Call(calledAst, _): {
 				final type = switch(fromTypedAst(calledAst)) {

@@ -31,6 +31,10 @@ class CompileErrorExt {
 
 	public static function errorDescription(self: CompileError): String {
 		return switch(self) {
+			case ParserError(CompilerError(_)) | TyperError(CompilerError(_)) | ExecutorError(CompilerError(_)): {
+				"This error should not be possible. Please report in the SillyScript repo!";
+			}
+
 			case LexerError(UnexpectedEndOfFile): {
 				"Unexpected end of file.";
 			}
@@ -72,9 +76,6 @@ class CompileErrorExt {
 				typeKind + " cannot have a subtype.";
 			}
 
-			case TyperError(CompilerError(_)): {
-				"This error should not be possible. Please report in the SillyScript repo!";
-			}
 			case TyperError(NothingWithName(name)): {
 				"There is no declaration with this name.";
 			}
@@ -89,6 +90,12 @@ class CompileErrorExt {
 			}
 			case TyperError(WrongRole): {
 				"Cannot pass type with different role.";
+			}
+			case TyperError(UnknownType): {
+				"This type name is not known.";
+			}
+			case TyperError(CannotHaveSubtype): {
+				"This type cannot have a subtype.";
 			}
 			case TyperError(CannotPassNullableTypeToNonNullable): {
 				"Cannot pass value of nullable type to non-nullable type.";
@@ -124,6 +131,9 @@ class CompileErrorExt {
 			case ExecutorError(CannotExecuteEmptyDef): {
 				"Cannot execute def that failed to compile.";
 			}
+			case ExecutorError(CannotExecuteEnumOfType(kind)): {
+				"Cannot convert enum to type `" + kind + "`.";
+			}
 
 			case TyperError(_) | TranspilerError(_): "placeholder";
 		}
@@ -131,6 +141,10 @@ class CompileErrorExt {
 
 	public static function errorHint(self: CompileError): String {
 		return switch(self) {
+			case ParserError(CompilerError(message)) | TyperError(CompilerError(message)) | ExecutorError(CompilerError(message)): {
+				message;
+			}
+
 			case LexerError(UnexpectedEndOfFile): {
 				"the file ended unexpectedly here";
 			}
@@ -172,9 +186,6 @@ class CompileErrorExt {
 				"this should not have a type before it";
 			}
 
-			case TyperError(CompilerError(message)): {
-				message;
-			}
 			case TyperError(NothingWithName(name)): {
 				name + " is undefined";
 			}
@@ -189,6 +200,12 @@ class CompileErrorExt {
 			}
 			case TyperError(WrongRole): {
 				"these types have different roles";
+			}
+			case TyperError(UnknownType): {
+				"this type does not exist";
+			}
+			case TyperError(CannotHaveSubtype): {
+				"this type should not have another type in front of it";
 			}
 			case TyperError(CannotPassNullableTypeToNonNullable): {
 				"this value might be null, but it is being passed to non-nullable type";
@@ -223,6 +240,9 @@ class CompileErrorExt {
 			}
 			case ExecutorError(CannotExecuteEmptyDef): {
 				"unfinished def";
+			}
+			case ExecutorError(CannotExecuteEnumOfType(kind)): {
+				"cannot convert this case to `" + kind + "`";
 			}
 
 			case TranspilerError(_): "placeholder";

@@ -1,17 +1,24 @@
 ### error
-Parser Error: Int cannot have a subtype.
+Typing Error: A value of type `int list` cannot be returned as type `int`.
  --> test/unit_tests/TypeCannotHaveSubtype.silly
-16 | 
-17 | def Something(a: int int) -> int:
-                          ^^^ this should not have a type before it
-18 |    123;
+23 | 
+24 | def Something(a: int int) -> int:
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ cannot return `int list` as `int`
+25 |    123;
+     ^^^^^^^
+26 | 
 
-Parser Error: Unexpected content encountered that does not match SillyScript syntax.
+Typing Error: There is no declaration with this name.
  --> test/unit_tests/TypeCannotHaveSubtype.silly
-16 | 
-17 | def Something(a: int int) -> int:
-                             ^ unexpected content encountered
-18 |    123;
+26 | 
+27 | Something(123);
+     ^^^^^^^^^ Something is undefined
+
+Typing Error: Cannot call this expression of unknown type.
+ --> test/unit_tests/TypeCannotHaveSubtype.silly
+26 | 
+27 | Something(123);
+              ^^^^^ cannot call this expression of unknown type
 ###
 
 def Something(a: int int) -> int:

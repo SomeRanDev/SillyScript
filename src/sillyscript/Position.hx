@@ -2,11 +2,16 @@ package sillyscript;
 
 @:structInit
 class Position {
+	public static final INVALID: Position = { fileIdentifier: -1, start: -1, end: -1 };
+
 	public var fileIdentifier(default, null): Int;
 	public var start(default, null): Int;
 	public var end(default, null): Int;
 
 	public function merge(other: Position): Position {
+		if(fileIdentifier < 0 || other.fileIdentifier < 0) {
+			return INVALID;
+		}
 		return {
 			fileIdentifier: fileIdentifier,
 			start: start < other.start ? start : other.start,
@@ -15,6 +20,9 @@ class Position {
 	}
 
 	public function toString() {
-		return fileIdentifier + "(" + start + "-" + end + ")";
+		if(fileIdentifier < 0) {
+			return "Position(INVALID)";
+		}
+		return "Position(" + fileIdentifier + ", (" + start + "-" + end + "))";
 	}
 }

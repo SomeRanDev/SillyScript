@@ -1,0 +1,43 @@
+### error
+Typing Error: There is no declaration with this name.
+ --> test/unit_tests/MisspelledEnum.silly
+39 | def TakeNumber(num: Nombers) -> dict:
+40 |    num: num;
+             ^^^ num is undefined
+41 | 
+
+Typing Error: There is no declaration with this name.
+ --> test/unit_tests/MisspelledEnum.silly
+41 | 
+42 | TakeNumber(one);
+     ^^^^^^^^^^ TakeNumber is undefined
+43 | TakeNumber(two);
+
+Typing Error: Cannot call this expression of unknown type.
+ --> test/unit_tests/MisspelledEnum.silly
+41 | 
+42 | TakeNumber(one);
+               ^^^^^ cannot call this expression of unknown type
+43 | TakeNumber(two);
+
+Typing Error: There is no declaration with this name.
+ --> test/unit_tests/MisspelledEnum.silly
+42 | TakeNumber(one);
+43 | TakeNumber(two);
+     ^^^^^^^^^^ TakeNumber is undefined
+
+Typing Error: Cannot call this expression of unknown type.
+ --> test/unit_tests/MisspelledEnum.silly
+42 | TakeNumber(one);
+43 | TakeNumber(two);
+               ^^^^^ cannot call this expression of unknown type
+###
+
+enum Numbers:
+	one; two; three;
+
+def TakeNumber(num: Nombers) -> dict:
+	num: num;
+
+TakeNumber(one);
+TakeNumber(two);

@@ -92,6 +92,31 @@ class Executor {
 					}]);
 				}
 			}
+			case EnumCaseIdentifier(enumDecl, caseIndex): {
+				final v: Value = switch(enumDecl.value.type.value.kind) {
+					case Int: {
+						Int(Std.string(caseIndex));
+					}
+					case String: {
+						final c = enumDecl.value.cases.get(caseIndex);
+						if(c != null) {
+							String(Std.string(c.value));
+						} else {
+							return Error([{
+								value: CompilerError("invalid case index " + caseIndex + " for enum " + enumDecl.value.name),
+								position: ast.position
+							}]);
+						}
+					}
+					case kind: {
+						return Error([{
+							value: CannotExecuteEnumOfType(kind),
+							position: ast.position
+						}]);
+					}
+				};
+				Success({ value: Value(v), position: ast.position });
+			}
 			case Call(positionedTypedAst, arguments): {
 				switch(positionedTypedAst.value) {
 					case DefIdentifier(typedDef): {

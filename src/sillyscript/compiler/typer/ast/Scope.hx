@@ -1,5 +1,6 @@
 package sillyscript.compiler.typer.ast;
 
+import haxe.display.Display.Package;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxId;
 import sillyscript.compiler.typer.ast.TypedCustomSyntaxDeclaration;
 import sillyscript.compiler.typer.ast.TypedDef;
@@ -10,17 +11,23 @@ import sillyscript.Positioned;
 **/
 class Scope {
 	var defs: Array<Positioned<TypedDef>>;
+	var enums: Array<Positioned<TypedEnum>>;
 	var customSyntaxes: Array<Positioned<TypedCustomSyntaxDeclaration>>;
 	var containedInDefs: Array<Positioned<TypedDef>>;
 
 	public function new() {
 		defs = [];
+		enums = [];
 		customSyntaxes = [];
 		containedInDefs = [];
 	}
 
 	public function addDef(def: Positioned<TypedDef>) {
 		defs.push(def);
+	}
+
+	public function addEnum(enumDecl: Positioned<TypedEnum>) {
+		enums.push(enumDecl);
 	}
 
 	public function addCustomSyntax(customSyntax: Positioned<TypedCustomSyntaxDeclaration>) {
@@ -43,6 +50,23 @@ class Scope {
 				if(arguments[i].value.name.value == name) {
 					return DefArgument(def, i);
 				}
+			}
+		}
+		for(enumDecl in enums) {
+			final cases = enumDecl.value.cases;
+			for(i in 0...cases.length) {
+				if(cases[i].value == name) {
+					return EnumCase(enumDecl, i);
+				}
+			}
+		}
+		return null;
+	}
+
+	public function findType(name: String): Null<SillyTypeKind> {
+		for(typedEnum in enums) {
+			if(typedEnum.value.name.value == name) {
+				return SillyTypeKind.Enum(typedEnum);
 			}
 		}
 		return null;

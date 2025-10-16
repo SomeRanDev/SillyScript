@@ -1,6 +1,5 @@
 package sillyscript.compiler.parser;
 
-import sillyscript.compiler.typer.SillyType;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration;
 import sillyscript.compiler.parser.custom_syntax.CustomSyntaxScope;
 import sillyscript.Positioned;
@@ -33,6 +32,7 @@ class UntypedList {
 
 enum UntypedDeclaration {
 	Def(def: UntypedDefDeclaration);
+	Enum(enumDecl: UntypedEnumDeclaration);
 	CustomSyntax(customSyntax: UntypedCustomSyntaxDeclaration);
 }
 
@@ -45,11 +45,22 @@ class UntypedScope {
 @:structInit
 class UntypedDefDeclaration {
 	public var name(default, null): String;
-	public var arguments(default, null): Array<Positioned<{ name:Positioned<String>, type:Positioned<SillyType> }>>;
-	public var returnType(default, null): Positioned<SillyType>;
+	public var arguments(default, null): Array<Positioned<{ name:Positioned<String>, type:Positioned<AmbiguousType> }>>;
+	public var returnType(default, null): Positioned<AmbiguousType>;
 	public var content(default, null): Positioned<UntypedAst>;
 
 	public function toString() {
 		return '{ name: $name, arguments: $arguments, returnType: $returnType, content: $content }';
+	}
+}
+
+@:structInit
+class UntypedEnumDeclaration {
+	public var name(default, null): Positioned<String>;
+	public var type(default, null): Null<Positioned<AmbiguousType>>;
+	public var cases(default, null): Array<Positioned<String>>;
+
+	public function toString() {
+		return 'UntypedEnumDeclaration(name: $name, type: $type, cases: $cases)';
 	}
 }

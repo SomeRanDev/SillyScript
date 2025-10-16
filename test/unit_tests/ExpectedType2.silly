@@ -1,16 +1,22 @@
 ### error
-Parser Error: Expected a type.
+Typing Error: This type name is not known.
  --> test/unit_tests/ExpectedType2.silly
-15 | 
-16 | def Something() -> something:
-                        ^^^^^^^^^ this should be a type
-17 |    123;
+21 | 
+22 | def Something() -> something:
+                        ^^^^^^^^^ this type does not exist
+23 |    123;
 
-Parser Error: List entry found while parsing dictionary entries.
+Typing Error: There is no declaration with this name.
  --> test/unit_tests/ExpectedType2.silly
-18 | 
-19 | Something();
-              ^^ this should have label (MY_LABEL: ...)
+24 | 
+25 | Something();
+     ^^^^^^^^^ Something is undefined
+
+Typing Error: Cannot call this expression of unknown type.
+ --> test/unit_tests/ExpectedType2.silly
+24 | 
+25 | Something();
+              ^^ cannot call this expression of unknown type
 ###
 
 def Something() -> something:

@@ -19,6 +19,8 @@ enum TyperError {
 	WrongType(receivingType: SillyType, providingType: SillyType);
 	WrongReturnType(receivingType: SillyType, providingType: SillyType);
 	WrongRole;
+	UnknownType;
+	CannotHaveSubtype;
 	CannotPassNullableTypeToNonNullable;
 	InconsistentTypeBetweenSyntaxTemplates;
 	CannotCall(type: Null<SillyType>);

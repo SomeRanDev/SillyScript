@@ -7,6 +7,7 @@ import sillyscript.compiler.lexer.Token;
 	All the possible errors that can occur during parsing.
 **/
 enum ParserError {
+	CompilerError(message: String);
 	ParserNoMatch;
 	Expected(token: Token);
 	ExpectedMultiple(tokens: Array<Token>);

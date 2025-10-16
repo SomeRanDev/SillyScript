@@ -2,6 +2,7 @@ package sillyscript.compiler.lexer;
 
 enum Keyword {
 	Def;
+	Enum;
 	Syntax;
 	Pattern;
 }

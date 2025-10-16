@@ -83,6 +83,21 @@ class ExpressionParser {
 						}
 					}
 				}
+				case Keyword(Enum): {
+					switch(EnumDeclParser.parseEnum(parser)) {
+						case Success(result): {
+							declarations.push(result.map(d -> Enum(d)));
+							continue;
+						}
+						case NoMatch: {}
+						case Error(enumParserErrors): {
+							for(e in enumParserErrors) {
+								errors.push(e);
+							}
+							continue;
+						}
+					}
+				}
 				case Keyword(Syntax): {
 					switch(CustomSyntaxDeclParser.parseCustomSyntaxDeclaration(parser)) {
 						case Success(result): {
@@ -291,7 +306,7 @@ class ExpressionParser {
 					case Success(result): {
 						final positionedUntypedAst: Positioned<UntypedAst> = {
 							value: UntypedAst.CustomSyntax(result.possibilities, result.expressions),
-							position: parser.makePositionFromState(state),
+							position: parser.makePositionFromState(state, false),
 						};
 						Success(positionedUntypedAst);
 					}
@@ -351,7 +366,7 @@ class ExpressionParser {
 				case Success(result): {
 					final positionedUntypedAst: Positioned<UntypedAst> = {
 						value: UntypedAst.CustomSyntax(result.possibilities, result.expressions),
-						position: parser.makePositionFromState(state),
+						position: parser.makePositionFromState(state, false),
 					};
 
 					// TODO, should we recursively call `parsePostExpression` on this result??

@@ -1,12 +1,9 @@
 package sillyscript.compiler.parser.subparsers;
 
-import sillyscript.compiler.lexer.Token;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration;
-import sillyscript.compiler.parser.custom_syntax.CustomSyntaxToken;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.parser.UntypedAst.UntypedDeclaration;
 import sillyscript.compiler.typer.SillyType;
-import sillyscript.compiler.typer.Typer;
 import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Positioned;
 
@@ -75,7 +72,7 @@ class CustomSyntaxDeclParser {
 				case Keyword(Pattern): {
 					parser.expectOrFatal(Keyword(Pattern));
 
-					var returnType: Null<Positioned<SillyType>> = null;
+					var returnType: Null<Positioned<AmbiguousType>> = null;
 
 					switch(parser.peek()) {
 						case Arrow: {
@@ -157,12 +154,12 @@ class CustomSyntaxDeclParser {
 
 					returnIfError(parser.expect(DecrementIndent));
 
-					final returnType: Positioned<SillyType> = returnType ?? {
-						value: {
+					final returnType: Positioned<AmbiguousType> = returnType ?? {
+						value: Known({
 							kind: Dictionary(SillyType.ANY),
 							nullable: false,
 							role: ""
-						},
+						}),
 						position: c.position
 					};
 					patterns.push({
@@ -196,7 +193,7 @@ class CustomSyntaxDeclParser {
 
 	static function parseSyntaxTemplateArgument(parser: Parser): ParseResult<Positioned<{
 		name: Positioned<String>,
-		type: Positioned<SillyType>,
+		type: Positioned<AmbiguousType>,
 	}>> {
 		switch(parser.peek()) {
 			case TriangleOpen: {}

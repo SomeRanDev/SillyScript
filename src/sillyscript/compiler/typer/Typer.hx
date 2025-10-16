@@ -61,6 +61,20 @@ class Typer {
 	}
 
 	/**
+		Finds a type that has the same name as `name`.
+		Returns `null` if there is no type with the name `name`.
+	**/
+	public function findType(name: String): Null<SillyTypeKind> {
+		for(scope in scopeStack.topToBottomIterator()) {
+			final maybeType = scope.findType(name);
+			if(maybeType != null) {
+				return maybeType;
+			}
+		}
+		return null;
+	}
+
+	/**
 		Returns the `TypedAst` of the `untypedAst` passed in the constructor.
 	**/
 	public function type(): TyperResult {
@@ -87,6 +101,12 @@ class Typer {
 								position: ast.position
 							});
 						}
+						case EnumCase(enumDecl, index): {
+							return Success({
+								value: EnumCaseIdentifier(enumDecl, index),
+								position: ast.position
+							});
+						}
 						case _:
 					}
 				}
@@ -109,7 +129,6 @@ class Typer {
 				final errors = [];
 				final scope = DeclarationTyper.type(this, scope.declarations, errors);
 
-				pushScope(scope);
 				for(item in items) {
 					switch(typeAst(item)) {
 						case Success(typedAst): typedEntries.push(typedAst);
@@ -134,7 +153,6 @@ class Typer {
 				final errors = [];
 				final scope = DeclarationTyper.type(this, scope.declarations, errors);
 
-				pushScope(scope);
 				for(item in items) {
 					switch(typeAst(item.value.value)) {
 						case Success(typedAst): typedEntries.push({

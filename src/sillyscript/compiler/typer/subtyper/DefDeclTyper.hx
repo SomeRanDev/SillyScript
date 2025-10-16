@@ -20,10 +20,49 @@ class DefDeclTyper {
 		typer: Typer,
 		untypedDef: Positioned<UntypedDefDeclaration>
 	): PositionedResult<Positioned<TypedDef>, TyperError> {
+		final errors = [];
+
+		final typedArguments: Array<Positioned<{ name: Positioned<String>, type: Positioned<SillyType> }>> = [];
+		for(argument in untypedDef.value.arguments) {
+			final realType = switch(TypeTyper.typeType(typer, argument.value.type)) {
+				case Success(type): type;
+				case Error(typingErrors): {
+					for(e in typingErrors) {
+						errors.push(e);
+					}
+					continue;
+				}
+			}
+			typedArguments.push({
+				value: {
+					name: argument.value.name,
+					type: {
+						value: realType,
+						position: argument.value.type.position
+					}
+				},
+				position: argument.position
+			});
+		}
+
+		final returnTypeTypingResult = TypeTyper.typeType(typer, untypedDef.value.returnType);
+		final realReturnType: Positioned<SillyType> = switch(returnTypeTypingResult) {
+			case Success(type): {
+				value: type,
+				position: untypedDef.position
+			}
+			case Error(typingErrors): {
+				for(e in typingErrors) {
+					errors.push(e);
+				}
+				return Error(errors);
+			}
+		}
+
 		final typedDef = new TypedDef(
 			untypedDef.value.name,
-			untypedDef.value.arguments,
-			untypedDef.value.returnType
+			typedArguments,
+			realReturnType
 		);
 
 		final scope = new Scope();
@@ -34,7 +73,7 @@ class DefDeclTyper {
 
 		return switch(typingResult) {
 			case Success(defExpression): {
-				switch(checkReturnType(defExpression, untypedDef)) {
+				switch(checkReturnType(defExpression, untypedDef, realReturnType.value)) {
 					case Success(Nothing): {}
 					case Error(e): return Error(e);
 				}
@@ -57,11 +96,11 @@ class DefDeclTyper {
 	**/
 	static function checkReturnType(
 		defExpression: Positioned<TypedAst>,
-		untypedDef: Positioned<UntypedDefDeclaration>
+		untypedDef: Positioned<UntypedDefDeclaration>,
+		returnType: SillyType
 	): PositionedResult<Nothing, TyperError> {
 		switch(SillyType.fromTypedAst(defExpression)) {
 			case Success(defExpressionType): {
-				final returnType = untypedDef.value.returnType.value;
 				switch(returnType.canReceiveType(defExpressionType)) {
 					case Success(Nothing): {}
 					case Error(errors): return Error(errors.map(function(e) {

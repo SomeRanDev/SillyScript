@@ -1,11 +1,9 @@
 package sillyscript.compiler.parser.subparsers;
 
 import sillyscript.compiler.parser.UntypedAst.UntypedDefDeclaration;
-import sillyscript.compiler.typer.SillyType;
 import sillyscript.MacroUtils.returnIfError;
 import sillyscript.Positioned;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
-import sillyscript.compiler.typer.Typer;
 
 /**
 	Handles the parsing of `def` declarations.
@@ -104,7 +102,7 @@ class DefDeclParser {
 
 	static function parseArgument(parser: Parser): ParseResult<Positioned<{
 		name: Positioned<String>,
-		type: Positioned<SillyType>
+		type: Positioned<AmbiguousType>
 	}>> {
 		final tokenWithPosition = parser.peekWithPosition();
 		if(tokenWithPosition == null) return NoMatch;

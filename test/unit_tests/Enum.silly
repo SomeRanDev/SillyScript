@@ -1,0 +1,34 @@
+### output
+[
+	{
+		"num": 0
+	},
+	{
+		"num": 1
+	},
+	[
+		2
+	],
+	[
+		0
+	]
+]
+###
+
+enum Numbers:
+	one; two; three;
+
+def TakeNumber(num: Numbers) -> dict:
+	num: num;
+
+TakeNumber(one);
+TakeNumber(two);
+
+enum letters:
+	A; B; C;
+
+def TakeLetter(letter: letters) -> list:
+	letter;
+
+TakeLetter(C);
+TakeLetter(A);

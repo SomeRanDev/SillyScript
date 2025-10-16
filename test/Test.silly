@@ -53,11 +53,20 @@ Bla2(321, a: 333);
 
 syntax Dead:
 	pattern:
-		💀<data: int>💀
+		💀<data: any>💀
 
-def GetNum() -> int:
+def GetNum() -> int list:
 	123;
 
 💀321💀;
 💀123💀;
 💀GetNum()💀;
+
+enum RPGMaker -> string:
+	mv;
+	mz;
+
+def Blabla(a: RPGMaker) -> dict:
+	a: a;
+
+Blabla(mv);

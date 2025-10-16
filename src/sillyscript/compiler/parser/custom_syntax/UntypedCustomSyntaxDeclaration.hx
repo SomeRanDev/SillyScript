@@ -1,9 +1,9 @@
 package sillyscript.compiler.parser.custom_syntax;
 
+import sillyscript.compiler.parser.AmbiguousType;
 import haxe.ds.ReadOnlyArray;
 import sillyscript.compiler.lexer.Token;
 import sillyscript.compiler.parser.UntypedAst.UntypedDeclaration;
-import sillyscript.compiler.typer.SillyType;
 
 typedef CustomSyntaxId = Int;
 
@@ -15,7 +15,7 @@ enum CustomSyntaxDeclarationToken {
 		`name` is the name of the expression input parameter.
 		`type` is the required type of the expression.
 	**/
-	ExpressionInput(name: Positioned<String>, type: Positioned<SillyType>);
+	ExpressionInput(name: Positioned<String>, type: Positioned<AmbiguousType>);
 
 	/**
 		`token` is any token that isn't a part of an expression input.
@@ -28,7 +28,7 @@ enum CustomSyntaxDeclarationToken {
 **/
 @:structInit
 class UntypedCustomSyntaxDeclarationPattern {
-	public var returnType(default, null): Positioned<SillyType>;
+	public var returnType(default, null): Positioned<AmbiguousType>;
 	public var tokenPattern(default, null): ReadOnlyArray<CustomSyntaxDeclarationToken>;
 }
 

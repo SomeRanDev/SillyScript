@@ -346,6 +346,7 @@ class Lexer {
 			case "true": Token.Bool(true);
 			case "false": Token.Bool(false);
 			case "def": Token.Keyword(Def);
+			case "enum": Token.Keyword(Enum);
 			case "syntax": Token.Keyword(Syntax);
 			case "pattern": Token.Keyword(Pattern);
 			case identifier: Token.Identifier(identifier);

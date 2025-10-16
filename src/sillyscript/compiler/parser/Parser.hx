@@ -62,7 +62,7 @@ class Parser {
 	**/
 	function makePosition(start: Int, end: Int): Position {
 		if(start > end) {
-			return { fileIdentifier: -1, start: -1, end: -1 };
+			return Position.INVALID;
 		}
 
 		final startToken = {
@@ -92,7 +92,7 @@ class Parser {
 		return if(startToken != null && endToken != null) {
 			startToken.position.merge(endToken.position);
 		} else {
-			startToken?.position ?? endToken?.position ?? { fileIdentifier: -1, start: -1, end: -1 };
+			startToken?.position ?? endToken?.position ?? Position.INVALID;
 		}
 	}
 
@@ -106,8 +106,8 @@ class Parser {
 	/**
 		Creates a `Position` starting from state obtained from `getState`.
 	**/
-	inline function makePositionFromState(state: ParserState): Position {
-		return makePosition(state.index, currentIndex);
+	inline function makePositionFromState(state: ParserState, inclusive: Bool): Position {
+		return makePosition(state.index, inclusive ? currentIndex : currentIndex - 1);
 	}
 
 	/**

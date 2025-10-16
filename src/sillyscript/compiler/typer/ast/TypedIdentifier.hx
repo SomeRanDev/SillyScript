@@ -1,5 +1,6 @@
 package sillyscript.compiler.typer.ast;
 
+import sillyscript.compiler.typer.ast.TypedEnum;
 import sillyscript.compiler.typer.ast.TypedDef;
 import sillyscript.Positioned;
 
@@ -9,4 +10,5 @@ import sillyscript.Positioned;
 enum TypedIdentifier {
 	Def(def: Positioned<TypedDef>);
 	DefArgument(def: Positioned<TypedDef>, index: Int);
+	EnumCase(enumDecl: Positioned<TypedEnum>, index: Int);
 }
