@@ -138,6 +138,16 @@ class SillyType {
 			attributes |= Role;
 		}
 
+		// If kinds do not match, let's check to see if the receiver is a multi-type.
+		if(attributes & Kind == 0) {
+			switch(kind) {
+				case Or(possibilities) if(canPossibilitiesReceiveType(possibilities, other)): {
+					attributes |= Kind;
+				}
+				case _:
+			}
+		}
+
 		if(attributes == All) {
 			return Success(Nothing);
 		}
@@ -163,6 +173,49 @@ class SillyType {
 		}
 
 		return Error([WrongType(this, other)]);
+	}
+
+	/**
+		Checks whether the `possibilities` from an `Or` type can receive the `other` type.
+	**/
+	static function canPossibilitiesReceiveType(possibilities: Array<SillyType>, other: SillyType): Bool {
+		var canReceive = true;
+		switch(other.kind) {
+			// If `other` is `Or`, check if every "other possibility" can be received.
+			case Or(otherPossibilities): {
+				for(otherPossibility in otherPossibilities) {
+					var otherPossibilityCanBeReceived = false;
+					for(possibility in possibilities) {
+						switch(possibility.canReceiveType(otherPossibility)) {
+							case Success(Nothing): {
+								otherPossibilityCanBeReceived = true;
+								break;
+							}
+							case _:
+						}
+					}
+
+					if(!otherPossibilityCanBeReceived) {
+						canReceive = false;
+						break;
+					}
+				}
+			}
+
+			// If `other` is NOT `Or`, simply check if any of the possibilities can receive it.
+			case _: {
+				for(possibility in possibilities) {
+					switch(possibility.canReceiveType(other)) {
+						case Success(Nothing): {
+							canReceive = true;
+							break;
+						}
+						case _:
+					}
+				}
+			}
+		}
+		return canReceive;
 	}
 
 	/**
@@ -280,7 +333,7 @@ class SillyType {
 				}
 			}
 			case CustomSyntax(customSyntax, patternIndex, _): {
-				customSyntax.patternTypes.get(patternIndex)?.value ?? ({
+				customSyntax.patterns.get(patternIndex)?.type.value ?? ({
 					kind: Dictionary(ANY),
 					nullable: false,
 					role: null

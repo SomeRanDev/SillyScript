@@ -1,5 +1,6 @@
 package sillyscript.compiler.parser.custom_syntax;
 
+import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxPatternId;
 import sillyscript.extensions.Stack;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxId;
 import sillyscript.compiler.lexer.Token;
@@ -16,15 +17,10 @@ enum CustomSyntaxNodeKind {
 	/**
 		This is an expression that can be placed in the syntax.
 
-		`identifierMap` contains all the custom syntax declaration IDs this node can correlate to
+		`identifierMap` contains all the custom syntax pattern IDs this node can correlate to
 		and maps them to their corresponding "name" defined in their pattern.
 	**/
-	Expression(identifierMap: Map<CustomSyntaxId, String>);
-
-	/**
-		A custom syntax within the custom syntax.
-	**/
-	Syntax(syntax: CustomSyntaxId, identifierMap: Map<CustomSyntaxId, String>);
+	Expression(identifierMap: Map<CustomSyntaxPatternId, String>);
 
 	/**
 		A node of this kind represents a single token in the syntax.
@@ -87,7 +83,6 @@ class CustomSyntaxNode {
 		kind = switch(token) {
 			case null: Start;
 			case Expression: Expression([]);
-			case Syntax(id): Syntax(id, []);
 			case Token(token): Token(token);
 		};
 
@@ -159,7 +154,6 @@ class CustomSyntaxNode {
 				final equals = switch(node.kind) {
 					case Start: false;
 					case Expression(_): newToken.equals(Expression);
-					case Syntax(id, _): newToken.equals(Syntax(id));
 					case Token(token): newToken.equals(Token(token));
 				}
 				if(equals) {
@@ -233,47 +227,11 @@ class CustomSyntaxNode {
 	}
 
 	/**
-		Returns a list of all `CustomSyntaxId`s that are available as "next" nodes.
-		If there are no custom syntax nodes next, `null` is returned.
-	**/
-	public function getAllSyntaxNextNodeIds(): Null<Array<CustomSyntaxId>> {
-		var result = null;
-		for(scope in scopeStack.topToBottomIterator()) {
-			for(node in scope.nextNodes) {
-				switch(node.kind) {
-					case Syntax(syntaxId, _): {
-						if(result == null) result = [];
-						result.push(syntaxId);
-					}
-					case _:
-				}
-			}
-		}
-		return result;
-	}
-
-	/**
-		If this node has a subsequent node that is a syntax input with ID `id`, it returns it.
-		Returns `null` otherwise.
-	**/
-	public function getSyntaxNextNode(id: CustomSyntaxId): Null<CustomSyntaxNode> {
-		for(scope in scopeStack.topToBottomIterator()) {
-			for(node in scope.nextNodes) {
-				switch(node.kind) {
-					case Syntax(syntaxId, _) if(syntaxId == id): return node;
-					case _:
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
 		Registers the identifier for the custom syntax declaration that uses this node.
 	**/
-	public function pushDeclarationExpressionIdentifier(id: CustomSyntaxId, name: String) {
+	public function pushDeclarationExpressionIdentifier(id: CustomSyntaxPatternId, name: String) {
 		switch(kind) {
-			case Expression(identifierMap) | Syntax(_, identifierMap): {
+			case Expression(identifierMap): {
 				identifierMap.set(id, name);
 			}
 			case _:
@@ -290,9 +248,9 @@ class CustomSyntaxNode {
 		getDeclarationExpressionIdentifierMap()[4];
 		```
 	**/
-	public function getDeclarationExpressionIdentifierMap(): Map<CustomSyntaxId, String> {
+	public function getDeclarationExpressionIdentifierMap(): Map<CustomSyntaxPatternId, String> {
 		return switch(kind) {
-			case Expression(identifierMap) | Syntax(_, identifierMap): identifierMap;
+			case Expression(identifierMap): identifierMap;
 			case _: [];
 		}
 	}

@@ -1,5 +1,7 @@
 package sillyscript.compiler.typer.subtyper;
 
+import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxPatternId;
+import haxe.macro.Type.TypedExpr;
 import haxe.ds.ReadOnlyArray;
 import sillyscript.compiler.parser.custom_syntax.CustomSyntaxScope.CustomSyntaxScopeMatchResultExpression;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxId;
@@ -21,6 +23,7 @@ typedef CustomSyntaxNamedExpression = { key: Positioned<String>, value: Position
 **/
 typedef TypedCustomSyntaxDeclarationAndPattern = {
 	declaration: TypedCustomSyntaxDeclaration,
+	pattern: TypedCustomSyntaxDeclarationPattern,
 	patternIndex: Int
 };
 
@@ -46,7 +49,7 @@ class CustomSyntaxExprTyper {
 
 		// Collect the matching type candidate instances (and a map of their expression identifiers)
 		var newCandidateDeclarations: Array<TypedCustomSyntaxDeclarationAndPattern>;
-		var identifiedExpressions: Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>>;
+		var identifiedExpressions: Map<CustomSyntaxPatternId, Array<CustomSyntaxNamedExpression>>;
 		switch(findCandidateDeclarations(typer, candidates, expressions, typedExpressions)) {
 			case Success({
 				newCandidateDeclarations: _newCandidateDeclarations,
@@ -103,7 +106,7 @@ class CustomSyntaxExprTyper {
 		}
 
 		// Get its identified expressions
-		final expressions = identifiedExpressions.get(candidate.declaration.id);
+		final expressions = identifiedExpressions.get(candidate.pattern.id);
 		if(expressions == null) {
 			return Error([{
 				value: CompilerError("final custom syntax candidate's identified expressions do not exist"),
@@ -163,12 +166,12 @@ class CustomSyntaxExprTyper {
 		typedExpressions: ReadOnlyArray<TypedAstWithType>
 	): PositionedResult<{
 		newCandidateDeclarations: Array<TypedCustomSyntaxDeclarationAndPattern>,
-		identifiedExpressions: Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>>
+		identifiedExpressions: Map<CustomSyntaxPatternId, Array<CustomSyntaxNamedExpression>>
 	}, TyperError> {
 		final errors = [];
 		final newCandidateDeclarations: Array<TypedCustomSyntaxDeclarationAndPattern> = [];
 		final identifiedExpressions:
-			Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>> = [];
+			Map<CustomSyntaxPatternId, Array<CustomSyntaxNamedExpression>> = [];
 
 		for(candidate in candidates) {
 			switch(checkCustomSyntaxCandidate(
@@ -201,7 +204,7 @@ class CustomSyntaxExprTyper {
 	static function checkCustomSyntaxCandidate(
 		typer: Typer,
 		candidate: { id: CustomSyntaxId, patternIndex: Int },
-		identifiedExpressions: Map<CustomSyntaxId, Array<CustomSyntaxNamedExpression>>,
+		identifiedExpressions: Map<CustomSyntaxPatternId, Array<CustomSyntaxNamedExpression>>,
 		expressions: ReadOnlyArray<CustomSyntaxScopeMatchResultExpression>,
 		typedExpressions: ReadOnlyArray<TypedAstWithType>
 	): PositionedResult<Array<TypedCustomSyntaxDeclarationAndPattern>, TyperError> {
@@ -213,9 +216,15 @@ class CustomSyntaxExprTyper {
 			return Success([]);
 		}
 
-		final identifyExpressions = identifiedExpressions.get(candidate.id) ?? {
+		final pattern = syntax.patterns.get(candidate.patternIndex);
+		if(pattern == null) {
+			// TODO: Should this be an error??
+			return Success([]);
+		}
+
+		final identifyExpressions = identifiedExpressions.get(pattern.id) ?? {
 			final result = [];
-			identifiedExpressions.set(candidate.id, result);
+			identifiedExpressions.set(pattern.id, result);
 			result;
 		};
 
@@ -226,7 +235,7 @@ class CustomSyntaxExprTyper {
 			final expression = expressions[i];
 			final typedExpression = typedExpressions[i];
 
-			final identifier = expression.identifiers.get(candidate.id);
+			final identifier = expression.identifiers.get(pattern.id);
 			if(identifier == null) {
 				return Error([{
 					value: CompilerError("identifier for custom syntax could not be found in match result expression"),
@@ -250,18 +259,39 @@ class CustomSyntaxExprTyper {
 				value: typedExpression.typedAst
 			});
 
-			switch(candidateDesiredType.canReceiveType(typedExpression.type)) {
-				case Success(Nothing): {}
-				case _: {
-					valid = false;
-					break;
+			// Check if the `typedExpression` is valid for this pattern's input.
+			final isValid = switch(candidateDesiredType) {
+				// If the input is a type, check that the type can receive the `typedExpression`'s
+				// type.
+				case TypedExpressionInput(type): {
+					switch(type.canReceiveType(typedExpression.type)) {
+						case Success(Nothing): true;
+						case _: false;
+					}
 				}
+
+				// If a custom syntax input, check if the expression is a custom syntax instance of
+				// the same ID.
+				case CustomSyntaxInput(id, _): {
+					switch(typedExpression.typedAst.value) {
+						case CustomSyntax(customSyntax, _, _): {
+							customSyntax.id == id;
+						}
+						case _: false;
+					}
+				}
+			}
+
+			if(!isValid) {
+				valid = false;
+				break;
 			}
 		}
 
 		if(valid) {
 			newCandidates.push({
 				declaration: (syntax : TypedCustomSyntaxDeclaration),
+				pattern: (pattern : TypedCustomSyntaxDeclarationPattern),
 				patternIndex: candidate.patternIndex
 			});
 		}

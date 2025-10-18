@@ -39,7 +39,7 @@ class CustomSyntaxScopeMatchResultExpression {
 	/**
 		A map of all the identifiers this expression correlates to with custom syntax declarations.
 	**/
-	public var identifiers(default, null): Map<CustomSyntaxId, String>;
+	public var identifiers(default, null): Map<CustomSyntaxPatternId, String>;
 }
 
 /**
@@ -121,16 +121,12 @@ class CustomSyntaxScope {
 			for(token in pattern.tokenPattern) {
 				var csToken = switch(token) {
 					case ExpressionInput(_, _): CustomSyntaxToken.Expression;
-					case CustomSyntaxInput(_, id): CustomSyntaxToken.Syntax(id);
 					case Token(token): CustomSyntaxToken.Token(token);
 				}
 				currentNode = currentNode.findOrCreateNextNode(csToken);
 				switch(token) {
 					case ExpressionInput(name, _): {
-						currentNode.pushDeclarationExpressionIdentifier(declaration.value.id, name.value);
-					}
-					case CustomSyntaxInput(name, _): {
-						currentNode.pushDeclarationExpressionIdentifier(declaration.value.id, name.value);
+						currentNode.pushDeclarationExpressionIdentifier(pattern.id, name.value);
 					}
 					case _:
 				}
@@ -151,7 +147,7 @@ class CustomSyntaxScope {
 	**/
 	public function matchSyntax(
 		context: ExpressionParserContext,
-		preparsedContent: Null<Either<Positioned<UntypedAst>, { id: CustomSyntaxId, expression: Positioned<UntypedAst> }>>
+		preparsedExpression: Null<Positioned<UntypedAst>>
 	): ParseResult<CustomSyntaxScopeMatchResult> {
 		final parser = context.parser;
 		final expressions: Array<CustomSyntaxScopeMatchResultExpression> = [];
@@ -160,94 +156,15 @@ class CustomSyntaxScope {
 		var node = startingNode;
 		var token = parser.peek();
 		while(token != null && token != EndOfFile) {
-			// If `preparsedContent` isn't `null`, let's set `newNode` to `null` to FORCE the
+			// If `preparsedExpression` isn't `null`, let's set `newNode` to `null` to FORCE the
 			// code to check for expression next node instead.
-			var newNode = if(preparsedContent != null) {
+			var newNode = if(preparsedExpression != null) {
 				null;
 			} else {
 				node.getNextNodeFromCurrentToken(token);
 			}
 			var advance = true;
 			if(newNode == null) {
-				var preparsedExpression = null;
-				var preparsedSyntax = null;
-				if(preparsedContent != null) {
-					switch(preparsedContent) {
-						case Left(expr): preparsedExpression = expr;
-						case Right(syntaxData): preparsedSyntax = syntaxData;
-						case _:
-					}
-					preparsedContent = null;
-				}
-
-				final ids = node.getAllSyntaxNextNodeIds();
-
-				final allowSyntax = tokensParsed > 0 || preparsedSyntax != null;
-				if(allowSyntax && ids != null && ids.length > 0) {
-					final result: ParseResult<Positioned<UntypedAst>> = if(preparsedSyntax != null && ids.contains(preparsedSyntax.id)) {
-						final result = preparsedSyntax;
-						preparsedSyntax = null;
-						Success(result.expression);
-					} else {
-						switch(matchSyntax(context, null)) {
-							case Success(result): {
-								final newPossibilities = [];
-								for(possibility in result.possibilities) {
-									if(ids.contains(possibility.id)) {
-										newPossibilities.push(possibility);
-									}
-								}
-								if(newPossibilities.length > 0) {
-									Success({
-										value: CustomSyntax(newPossibilities, result.expressions),
-										position: Position.INVALID
-									});
-								} else {
-									NoMatch;
-								}
-							}
-							case NoMatch: NoMatch;
-							case Error(errors): Error(errors);
-						}
-					}
-
-					switch(result) {
-						case Success(result): {
-							advance = false;
-
-							final candidateSyntaxIds = [];
-							switch(result.value) {
-								case CustomSyntax(candidates, _): {
-									for(candidate in candidates) {
-										if(!candidateSyntaxIds.contains(candidate.id)) {
-											candidateSyntaxIds.push(candidate.id);
-										}
-									}
-								}
-								case _:
-							}
-
-							final id = candidateSyntaxIds.get(0);
-							if(id == null || candidateSyntaxIds.length != 1) {
-								return Error([{
-									value: AmbiguousCustomSyntaxInCustomSyntax(candidateSyntaxIds),
-									position: result.position
-								}]);
-							}
-
-							newNode = node.getSyntaxNextNode(id);
-							if(newNode != null) {
-								expressions.push({
-									expression: result,
-									identifiers: newNode.getDeclarationExpressionIdentifierMap()
-								});
-							}
-						}
-						case NoMatch: return NoMatch;
-						case Error(e): return Error(e);
-					}
-				}
-
 				// Only allow an expression node if its NOT the first token UNLESS
 				// `preparsedExpression` is provided.
 				final allowExpression = tokensParsed > 0 || preparsedExpression != null;

@@ -130,7 +130,8 @@ class CustomSyntaxDeclParser {
 								switch(parseSyntaxTemplateArgumentWithTriangleBrackets(
 									context,
 									name.value,
-									positionedDeferredResult
+									positionedDeferredResult,
+									declarations
 								)) {
 									case Success(tokenResult): tokens.push(tokenResult);
 									case Error(e): {
@@ -209,23 +210,22 @@ class CustomSyntaxDeclParser {
 	static function parseSyntaxTemplateArgumentWithTriangleBrackets(
 		context: ExpressionParserContext,
 		currentSyntaxName: String,
-		deferredSelf: Positioned<UntypedCustomSyntaxDeclaration>
+		deferredSelf: Positioned<UntypedCustomSyntaxDeclaration>,
+		declarations: Array<Positioned<UntypedDeclaration>>
 	): PositionedResult<CustomSyntaxDeclarationToken, ParserError> {
 		final parser = context.parser;
 		final state = parser.getState();
-		return switch(parseSyntaxTemplateArgument(context, currentSyntaxName, deferredSelf)) {
+		return switch(parseSyntaxTemplateArgument(context, currentSyntaxName, deferredSelf, declarations)) {
 			case Success(argument): {
-				switch(argument.value.type.value) {
-					case Left(ambiguousType): {
-						Success(ExpressionInput(
-							argument.value.name,
-							argument.value.type.map(_ -> ambiguousType)
-						));
-					}
-					case Right(customSyntaxId): {
-						Success(CustomSyntaxInput(argument.value.name, customSyntaxId));
-					}
+				final expressionInputKind = switch(argument.value.type.value) {
+					case Left(ambiguousType): UntypedExpressionInput(ambiguousType);
+					case Right(customSyntaxId): CustomSyntaxInput(customSyntaxId);
 				}
+
+				Success(ExpressionInput(
+					argument.value.name,
+					argument.value.type.map(_ -> expressionInputKind)
+				));
 			}
 
 			// `UnknownSyntaxName` should be returned since it is very obviously intended to be a 
@@ -246,7 +246,8 @@ class CustomSyntaxDeclParser {
 	static function parseSyntaxTemplateArgument(
 		context: ExpressionParserContext,
 		currentSyntaxName: String,
-		deferredSelf: Positioned<UntypedCustomSyntaxDeclaration>
+		deferredSelf: Positioned<UntypedCustomSyntaxDeclaration>,
+		declarations: Array<Positioned<UntypedDeclaration>>
 	): ParseResult<Positioned<{
 		name: Positioned<String>,
 		type: Positioned<Either<AmbiguousType, CustomSyntaxId>>,
@@ -291,11 +292,29 @@ class CustomSyntaxDeclParser {
 
 						returnIfError(parser.expect(TriangleClose));
 
-						final syntaxDecl = if(syntaxName == currentSyntaxName) {
+						// Find syntax declaration from `currentSyntaxName` name.
+						var localCustomSyntax: Null<Positioned<UntypedCustomSyntaxDeclaration>> = null;
+
+						// Uncomment this when ready to allow local custom syntax declarations
+						// within custom syntax declarations.
+						//
+						// for(localDeclaration in declarations) {
+						// 	switch(localDeclaration.value) {
+						// 		case CustomSyntax(customSyntax) if(customSyntax.name.value == syntaxName): {
+						// 			localCustomSyntax = localDeclaration.map(_ -> customSyntax);
+						// 		}
+						// 		case _:
+						// 	}
+						// }
+
+						final syntaxDecl = if(localCustomSyntax != null) {
+							localCustomSyntax;
+						} else if(syntaxName == currentSyntaxName) {
 							deferredSelf;
 						} else {
 							context.syntaxScope?.findSyntaxDeclaration(syntaxName);
 						}
+
 						return if(syntaxDecl != null) {
 							Success({
 								value: {

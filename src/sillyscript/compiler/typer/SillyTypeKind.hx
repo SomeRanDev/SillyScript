@@ -1,5 +1,6 @@
 package sillyscript.compiler.typer;
 
+import sillyscript.compiler.typer.SillyType;
 import sillyscript.compiler.typer.ast.TypedEnum;
 import sillyscript.extensions.Nothing;
 import sillyscript.compiler.typer.ast.TypedDef;
@@ -19,6 +20,7 @@ enum SillyTypeKind {
 	Dictionary(subtype: SillyType);
 	Callable(callable: CallableAst);
 	Enum(typedEnum: Positioned<TypedEnum>);
+	Or(possibilities: Array<SillyType>);
 }
 
 /**
@@ -47,6 +49,7 @@ class SillyTypeKindExt {
 			case Dictionary(subtype): subtype.toString() + " dict";
 			case Callable(Def(typedDef)): typedDef.name + " callable";
 			case Enum(typedEnum): "enum(" + typedEnum.value.name.value + ")";
+			case Or(possibilities): possibilities.join(" | ");
 		}
 	}
 
@@ -75,6 +78,19 @@ class SillyTypeKindExt {
 			}
 			case Enum(typedEnum): switch(other) {
 				case Enum(otherTypedEnum): typedEnum.value.id == otherTypedEnum.value.id;
+				case _: false;
+			}
+			case Or(possibilities): switch(other) {
+				case Or(otherPossibilities) if(possibilities.length == otherPossibilities.length): {
+					var result = true;
+					for(i in 0...possibilities.length) {
+						if(!possibilities[i].isEqual(otherPossibilities[i])) {
+							result = false;
+							break;
+						}
+					}
+					result;
+				}
 				case _: false;
 			}
 		}

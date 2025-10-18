@@ -1,5 +1,7 @@
 package sillyscript.compiler.parser.subparsers;
 
+import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.UntypedCustomSyntaxDeclarationPattern;
+import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxId;
 import haxe.ds.Either;
 import sillyscript.compiler.parser.custom_syntax.CustomSyntaxScope;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
@@ -362,6 +364,12 @@ class ExpressionParser {
 		}
 	}
 
+	/**
+		Parse content after an expression has been parsed.
+
+		Currently this checks for any custom syntax that starts with an expression input.
+		If that fails, it checks for a "call" to a definition.
+	**/
 	static function parsePostExpression(
 		context: ExpressionParserContext,
 		expression: Positioned<UntypedAst>
@@ -371,26 +379,10 @@ class ExpressionParser {
 		final firstToken = parser.peekWithPosition();
 		if(firstToken == null) return NoMatch;
 
-		final syntaxScope = context.syntaxScope;
-		if(syntaxScope != null) {
-			final state = parser.getState();
-			final possibleSyntaxes = syntaxScope.matchSyntax(context, Left(expression));
-			switch(possibleSyntaxes) {
-				case Success(result): {
-					final positionedUntypedAst: Positioned<UntypedAst> = {
-						value: UntypedAst.CustomSyntax(result.possibilities, result.expressions),
-						position: parser.makePositionFromState(state, false),
-					};
-
-					// TODO, should we recursively call `parsePostExpression` on this result??
-					return Success(positionedUntypedAst);
-				}
-
-				// Ignore errors and revert back to the original state.
-				case NoMatch | Error(_): {
-					parser.revertToState(state);
-				}
-			}
+		switch(parseCustomSyntaxPostExpression(context, expression)) {
+			case Success(result): return Success(result);
+			case NoMatch: {}
+			case Error(e): return Error(e);
 		}
 
 		return switch(firstToken.value) {
@@ -402,6 +394,115 @@ class ExpressionParser {
 				NoMatch;
 			}
 		}
+	}
+
+	/**
+		Attempt to parse a custom syntax after an expression has been parsed.
+	**/
+	static function parseCustomSyntaxPostExpression(
+		context: ExpressionParserContext,
+		expression: Positioned<UntypedAst>
+	): ParseResult<Positioned<UntypedAst>> {
+		final parser = context.parser;
+		final syntaxScope = context.syntaxScope;
+		if(syntaxScope == null) return NoMatch;
+
+		final startingState = parser.getState();
+		final possibleSyntaxes = syntaxScope.matchSyntax(context, expression);
+		switch(possibleSyntaxes) {
+			case Success(result): {
+				// If `expression` is a `CustomSyntax` with all candidates of a single ID,
+				// that ID is stored here. Otherwise, this value will be `-1`.
+				final inputExpressionSyntaxId: CustomSyntaxId = switch(expression.value) {
+					case CustomSyntax(candidates, _): {
+						var candidateId: CustomSyntaxId = -1;
+						for(c in candidates) {
+							if(candidateId == -1) {
+								candidateId = c.id;
+							} else if(candidateId != c.id) {
+								candidateId = -1;
+								break;
+							}
+						}
+						candidateId;
+					}
+					case _: -1;
+				}
+
+				// Filter the possibilities so that if an input REQUIRES a custom syntax, but its
+				// provided expression is NOT a custom syntax of the same ID, it gets removed.
+				//
+				// This helps resolve parsing problems for post-fix custom syntax that is too
+				// greedy.
+				//
+				// syntax Temp:
+				//     pattern
+				//          say <input: string>
+				//
+				//     pattern:
+				//         <something: syntax!Temp>?
+				//
+				// # The question will be consumed by the postfix parse of `"Test"` instead of
+				// # `say "Test"` if we do not filter possibilities here.
+				// say "Test"?;
+				final newPossibilities = [];
+				for(possibility in result.possibilities) {
+					final pattern: Null<UntypedCustomSyntaxDeclarationPattern> = syntaxScope
+						.findSyntaxDeclarationById(possibility.id)
+						?.value
+						?.patterns[possibility.patternIndex];
+					final isPossibilityAllowed = if(pattern != null && pattern.tokenPattern.length > 0) {
+						switch(pattern.tokenPattern[0]) {
+							case ExpressionInput(name, type): {
+								switch(type.value) {
+									case CustomSyntaxInput(id): inputExpressionSyntaxId == id;
+									case _: true;
+								}
+							}
+							case _: true;
+						}
+					} else {
+						true;
+					}
+
+					if(isPossibilityAllowed) {
+						newPossibilities.push(possibility);
+					}
+				}
+
+				// If `newPossibilities` DID filter stuff, remake `result` here!
+				if(newPossibilities.length != result.possibilities.length) {
+					result = {
+						possibilities: newPossibilities,
+						expressions: result.expressions
+					};
+				}
+
+				// If any possibilities remain, successfully generate the custom syntax and run
+				// `parsePostExpression` on THAT to handle additional postfix stuff afterwards!
+				if(result.possibilities.length > 0) {
+					final positionedUntypedAst: Positioned<UntypedAst> = {
+						value: UntypedAst.CustomSyntax(result.possibilities, result.expressions),
+						position: parser.makePositionFromState(startingState, false),
+					};
+
+					return switch(parsePostExpression(context, positionedUntypedAst)) {
+						case Success(result): Success(result);
+						case NoMatch: Success(positionedUntypedAst);
+						case Error(e): Error(e);
+					}
+				}
+			}
+
+			// Ignore errors and revert back to the original state after switch statement.
+			case NoMatch | Error(_): {}
+		}
+
+		// The parse was not successful, but tokens were consumed, so let's revert back to the state
+		// at the start of the function.
+		parser.revertToState(startingState);
+
+		return NoMatch;
 	}
 
 	/**

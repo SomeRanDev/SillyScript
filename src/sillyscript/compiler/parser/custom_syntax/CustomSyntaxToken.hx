@@ -10,7 +10,6 @@ import sillyscript.compiler.lexer.Token;
 @:using(sillyscript.compiler.parser.custom_syntax.CustomSyntaxToken.CustomSyntaxTokenExt)
 enum CustomSyntaxToken {
 	Expression;
-	Syntax(id: CustomSyntaxId);
 	Token(token: Token);
 }
 
@@ -26,12 +25,6 @@ class CustomSyntaxTokenExt {
 			case Expression: {
 				switch(other) {
 					case Expression: true;
-					case _: false;
-				}
-			}
-			case Syntax(id): {
-				switch(other) {
-					case Syntax(otherId): id == otherId;
 					case _: false;
 				}
 			}
