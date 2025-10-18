@@ -1,0 +1,71 @@
+### output
+[
+	{
+		"number": 123
+	},
+	{
+		"input": {
+			"input": {
+				"input": {
+					"input": {
+						"input": {
+							"input": {
+								"number": 321
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	{
+		"something": "What"
+	},
+	{
+		"questioned": {
+			"something": "What"
+		}
+	},
+	{
+		"exclaimed": {
+			"questioned": {
+				"exclaimed": {
+					"questioned": {
+						"exclaimed": {
+							"questioned": {
+								"questioned": {
+									"something": "OMG"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+]
+###
+
+syntax PrefixQuestionNumber:
+	pattern:
+		?<number: int>
+
+	pattern:
+		?<input: syntax!PrefixQuestionNumber>
+
+?123;
+???????321;
+
+syntax SaySomething:
+	pattern:
+		say <something: string>
+
+	pattern:
+		<exclaimed: syntax!SaySomething>!
+
+	pattern:
+		<questioned: syntax!SaySomething>?
+
+say "What";
+say "What"?;
+say "OMG"??!?!?!;

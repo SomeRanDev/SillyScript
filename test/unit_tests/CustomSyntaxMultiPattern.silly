@@ -1,0 +1,54 @@
+### output
+[
+	{
+		"condition": {
+			"check": "CanJump"
+		},
+		"actions": [
+			{
+				"action": "Jump"
+			}
+		]
+	},
+	{
+		"condition": {
+			"check": "CanFly"
+		},
+		"actions": [
+			{
+				"action": "Fly"
+			}
+		],
+		"else_actions": [
+			{
+				"action": "Die"
+			}
+		]
+	}
+]
+###
+
+syntax If:
+	pattern:
+		if <condition: dict!condition>:
+			<actions: dict!action list>
+	
+	pattern:
+		if <condition: dict!condition>:
+			<actions: dict!action list>
+		else:
+			<else_actions: dict!action list>
+
+def Do(action: string) -> dict!action:
+	action: action;
+
+def Cond(check: string) -> dict!condition:
+	check: check;
+
+if Cond("CanJump"):
+	Do("Jump");
+
+if Cond("CanFly"):
+	Do("Fly");
+else:
+	Do("Die");
