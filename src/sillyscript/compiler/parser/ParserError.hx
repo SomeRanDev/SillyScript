@@ -1,5 +1,6 @@
 package sillyscript.compiler.parser;
 
+import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration.CustomSyntaxId;
 import sillyscript.compiler.typer.SillyTypeKind;
 import sillyscript.compiler.lexer.Token;
 
@@ -18,4 +19,6 @@ enum ParserError {
 	UnexpectedListEntryWhileParsingDictionary;
 	UnexpectedDictionaryEntryWhileParsingList;
 	TypeCannotHaveSubtype(typeKind: SillyTypeKind);
+	UnknownSyntaxName(name: String);
+	AmbiguousCustomSyntaxInCustomSyntax(customSyntaxIds: Array<CustomSyntaxId>);
 }

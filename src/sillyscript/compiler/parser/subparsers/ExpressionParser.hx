@@ -7,6 +7,7 @@ import sillyscript.compiler.parser.subparsers.DefDeclParser;
 import sillyscript.compiler.parser.UntypedAst.UntypedDeclaration;
 import sillyscript.compiler.parser.UntypedAst.UntypedDictionaryEntry;
 import sillyscript.MacroUtils.returnIfError;
+import sillyscript.MacroUtils.returnIfErrorWith;
 import sillyscript.Positioned;
 using sillyscript.extensions.ArrayExt;
 
@@ -25,11 +26,27 @@ class ExpressionParserContext {
 	public var parser(default, null): Parser;
 	public var syntaxScope(default, null): Null<CustomSyntaxScope>;
 
+	var stackSize: Int = 0;
+
 	public function getOrMakeSyntaxScope(): CustomSyntaxScope {
 		if(syntaxScope == null) {
 			syntaxScope = new CustomSyntaxScope();
 		}
 		return syntaxScope;
+	}
+
+	public function pushStack() {
+		if(syntaxScope != null) {
+			syntaxScope.pushScope();
+			stackSize++;
+		}
+	}
+
+	public function popStack() {
+		if(syntaxScope != null && stackSize > 0) {
+			syntaxScope.popScope();
+			stackSize--;
+		}
 	}
 }
 
@@ -43,14 +60,17 @@ class ExpressionParser {
 		incremented indent.
 	**/
 	public static function parseListOrDictionaryPostColonIdent(
-		parser: Parser
+		context: ExpressionParserContext
 	): ParseResult<Positioned<UntypedAst>> {
+		final parser = context.parser;
+
 		var kind = Unknown;
 
-		final context: ExpressionParserContext = {
-			parser: parser,
-			syntaxScope: null
-		};
+		// final context: ExpressionParserContext = {
+		// 	parser: parser,
+		// 	syntaxScope: null
+		// };
+		context.pushStack();
 
 		final start = parser.currentIndex;
 		final listEntries: Array<Positioned<UntypedAst>> = [];
@@ -143,9 +163,11 @@ class ExpressionParser {
 			}
 
 			if(parser.peek(-1) != DecrementIndent) {
-				returnIfError(parser.expect(Semicolon));
+				returnIfErrorWith(parser.expect(Semicolon), errors);
 			}
 		}
+
+		context.popStack();
 
 		if(errors.length > 0) {
 			return Error(errors);
@@ -258,7 +280,7 @@ class ExpressionParser {
 
 			case IncrementIndent if(colonExists): {
 				parser.expectOrFatal(IncrementIndent);
-				parseListOrDictionaryPostColonIdent(parser).map(
+				parseListOrDictionaryPostColonIdent(context).map(
 					{ value: ExpectedListOrDictionaryEntries, position: parser.here() },
 					function(result) {
 						parser.advanceIfMatch(DecrementIndent);
@@ -270,7 +292,7 @@ class ExpressionParser {
 			case Colon if(!colonExists && parser.peek(1) == IncrementIndent): {
 				parser.expectOrFatal(Colon);
 				parser.expectOrFatal(IncrementIndent);
-				parseListOrDictionaryPostColonIdent(parser).map(
+				parseListOrDictionaryPostColonIdent(context).map(
 					{ value: ExpectedListOrDictionaryEntries, position: parser.here() },
 					function(result) {
 						parser.advanceIfMatch(DecrementIndent);
@@ -352,7 +374,7 @@ class ExpressionParser {
 		final syntaxScope = context.syntaxScope;
 		if(syntaxScope != null) {
 			final state = parser.getState();
-			final possibleSyntaxes = syntaxScope.matchSyntax(context, expression);
+			final possibleSyntaxes = syntaxScope.matchSyntax(context, Left(expression));
 			switch(possibleSyntaxes) {
 				case Success(result): {
 					final positionedUntypedAst: Positioned<UntypedAst> = {

@@ -24,6 +24,7 @@ class SillyType {
 	public static final ANY: SillyType = { kind: Any, nullable: false, role: null };
 	public static final NULL: SillyType = { kind: Null, nullable: false, role: null };
 	public static final INT: SillyType = { kind: Int, nullable: false, role: null };
+	public static final ANY_DICT: SillyType = { kind: Dictionary(ANY), nullable: false, role: null };
 
 	public var kind(default, null): SillyTypeKind;
 	public var nullable(default, null): Bool;

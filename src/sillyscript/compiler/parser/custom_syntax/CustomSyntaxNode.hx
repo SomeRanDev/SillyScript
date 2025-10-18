@@ -22,6 +22,11 @@ enum CustomSyntaxNodeKind {
 	Expression(identifierMap: Map<CustomSyntaxId, String>);
 
 	/**
+		A custom syntax within the custom syntax.
+	**/
+	Syntax(syntax: CustomSyntaxId, identifierMap: Map<CustomSyntaxId, String>);
+
+	/**
 		A node of this kind represents a single token in the syntax.
 	**/
 	Token(token: Token);
@@ -82,6 +87,7 @@ class CustomSyntaxNode {
 		kind = switch(token) {
 			case null: Start;
 			case Expression: Expression([]);
+			case Syntax(id): Syntax(id, []);
 			case Token(token): Token(token);
 		};
 
@@ -153,6 +159,7 @@ class CustomSyntaxNode {
 				final equals = switch(node.kind) {
 					case Start: false;
 					case Expression(_): newToken.equals(Expression);
+					case Syntax(id, _): newToken.equals(Syntax(id));
 					case Token(token): newToken.equals(Token(token));
 				}
 				if(equals) {
@@ -226,11 +233,49 @@ class CustomSyntaxNode {
 	}
 
 	/**
+		Returns a list of all `CustomSyntaxId`s that are available as "next" nodes.
+		If there are no custom syntax nodes next, `null` is returned.
+	**/
+	public function getAllSyntaxNextNodeIds(): Null<Array<CustomSyntaxId>> {
+		var result = null;
+		for(scope in scopeStack.topToBottomIterator()) {
+			for(node in scope.nextNodes) {
+				switch(node.kind) {
+					case Syntax(syntaxId, _): {
+						if(result == null) result = [];
+						result.push(syntaxId);
+					}
+					case _:
+				}
+			}
+		}
+		return result;
+	}
+
+	/**
+		If this node has a subsequent node that is a syntax input with ID `id`, it returns it.
+		Returns `null` otherwise.
+	**/
+	public function getSyntaxNextNode(id: CustomSyntaxId): Null<CustomSyntaxNode> {
+		for(scope in scopeStack.topToBottomIterator()) {
+			for(node in scope.nextNodes) {
+				switch(node.kind) {
+					case Syntax(syntaxId, _) if(syntaxId == id): return node;
+					case _:
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
 		Registers the identifier for the custom syntax declaration that uses this node.
 	**/
 	public function pushDeclarationExpressionIdentifier(id: CustomSyntaxId, name: String) {
 		switch(kind) {
-			case Expression(expressions): expressions.set(id, name);
+			case Expression(identifierMap) | Syntax(_, identifierMap): {
+				identifierMap.set(id, name);
+			}
 			case _:
 		}
 	}
@@ -247,7 +292,7 @@ class CustomSyntaxNode {
 	**/
 	public function getDeclarationExpressionIdentifierMap(): Map<CustomSyntaxId, String> {
 		return switch(kind) {
-			case Expression(expressions): expressions;
+			case Expression(identifierMap) | Syntax(_, identifierMap): identifierMap;
 			case _: [];
 		}
 	}

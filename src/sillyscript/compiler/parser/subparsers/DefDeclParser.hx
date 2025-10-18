@@ -57,10 +57,10 @@ class DefDeclParser {
 			switch(parser.peek()) {
 				case Comma: parser.expectOrFatal(Comma);
 				case ParenthesisClose: {}
-				case _: return Error([{
+				case _: return Error(errors.concat([{
 					value: ExpectedMultiple([Comma, ParenthesisClose]),
 					position: parser.here()
-				}]);
+				}]));
 			}
 
 			parser.ignoreWhitespace();
@@ -76,16 +76,16 @@ class DefDeclParser {
 		final returnType = switch(TypeParser.parseType(parser)) {
 			case Success(result): result;
 			case NoMatch: return Error([{ value: ExpectedType, position: parser.here() }]);
-			case Error(errors): return Error(errors);
+			case Error(e): return Error(e);
 		}
 
 		returnIfError(parser.expect(Colon));
 		returnIfError(parser.expect(IncrementIndent));
 
-		final content = switch(ExpressionParser.parseListOrDictionaryPostColonIdent(parser)) {
+		final content = switch(ExpressionParser.parseListOrDictionaryPostColonIdent(context)) {
 			case Success(result): result;
 			case NoMatch: return Error([{ value: ExpectedListOrDictionaryEntries, position: parser.here() }]);
-			case Error(errors): return Error(errors);
+			case Error(e): return Error(e);
 		}
 
 		returnIfError(parser.expect(DecrementIndent));

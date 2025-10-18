@@ -36,7 +36,7 @@ class EnumDeclParser {
 
 		final type = switch(parser.peek()) {
 			case Arrow: {
-				returnIfError(parser.expect(Arrow));
+				parser.expectOrFatal(Arrow);
 
 				switch(TypeParser.parseType(parser)) {
 					case Success(result): result;
@@ -59,7 +59,7 @@ class EnumDeclParser {
 
 			switch(c.value) {
 				case Identifier(content): {
-					returnIfError(parser.expect(Identifier(content)));
+					parser.expectOrFatal(Identifier(content));
 					returnIfError(parser.expect(Semicolon));
 					cases.push({
 						value: content,
@@ -67,7 +67,7 @@ class EnumDeclParser {
 					});
 				}
 				case DecrementIndent: {
-					returnIfError(parser.expect(DecrementIndent));
+					parser.expectOrFatal(DecrementIndent);
 					break;
 				}
 				case _: {

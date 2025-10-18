@@ -12,3 +12,12 @@ macro function returnIfError(self: ExprOf<Null<Positioned<ParserError>>>): Expr 
 		}
 	}
 }
+
+macro function returnIfErrorWith(self: ExprOf<Null<Positioned<ParserError>>>, errors: Expr): Expr {
+	return macro {
+		final result = $self;
+		if(result != null) {
+			return Error(errors.concat([result]));
+		}
+	}
+}

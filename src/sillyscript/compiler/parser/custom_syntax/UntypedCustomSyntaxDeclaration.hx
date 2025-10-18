@@ -18,6 +18,11 @@ enum CustomSyntaxDeclarationToken {
 	ExpressionInput(name: Positioned<String>, type: Positioned<AmbiguousType>);
 
 	/**
+		`id` is the ID for the custom syntax declaration.
+	**/
+	CustomSyntaxInput(name: Positioned<String>, id: CustomSyntaxId);
+
+	/**
 		`token` is any token that isn't a part of an expression input.
 	**/
 	Token(token: Token);
@@ -38,6 +43,12 @@ class UntypedCustomSyntaxDeclarationPattern {
 class UntypedCustomSyntaxDeclaration {
 	static var maxId: Int = 0;
 
+	public static function deferred() {
+		return new UntypedCustomSyntaxDeclaration({ value: "", position: Position.INVALID }, [], []);
+	}
+
+	// ---
+
 	public var name(default, null): Positioned<String>;
 	public var declarations(default, null): ReadOnlyArray<Positioned<UntypedDeclaration>>;
 	public var patterns(default, null): ReadOnlyArray<UntypedCustomSyntaxDeclarationPattern>;
@@ -48,10 +59,17 @@ class UntypedCustomSyntaxDeclaration {
 		declarations: ReadOnlyArray<Positioned<UntypedDeclaration>>,
 		patterns: ReadOnlyArray<UntypedCustomSyntaxDeclarationPattern>
 	) {
+		setAll(name, declarations, patterns);
+		id = maxId++;
+	}
+
+	public inline function setAll(
+		name: Positioned<String>,
+		declarations: ReadOnlyArray<Positioned<UntypedDeclaration>>,
+		patterns: ReadOnlyArray<UntypedCustomSyntaxDeclarationPattern>
+	) {
 		this.name = name;
 		this.declarations = declarations;
 		this.patterns = patterns;
-
-		id = maxId++;
 	}
 }

@@ -1,11 +1,14 @@
 package sillyscript.compiler.parser.subparsers;
 
+import sillyscript.compiler.Result.PositionedResult;
+import haxe.ds.Either;
 import sillyscript.compiler.parser.subparsers.ExpressionParser.ExpressionParserContext;
 import sillyscript.compiler.parser.custom_syntax.UntypedCustomSyntaxDeclaration;
 import sillyscript.compiler.parser.ParserResult.ParseResult;
 import sillyscript.compiler.parser.UntypedAst.UntypedDeclaration;
 import sillyscript.compiler.typer.SillyType;
 import sillyscript.MacroUtils.returnIfError;
+import sillyscript.MacroUtils.returnIfErrorWith;
 import sillyscript.Positioned;
 using sillyscript.extensions.ArrayExt;
 
@@ -14,9 +17,9 @@ using sillyscript.extensions.ArrayExt;
 **/
 @:access(sillyscript.compiler.parser.Parser)
 class CustomSyntaxDeclParser {
-	public static function parseCustomSyntaxDeclaration(context: ExpressionParserContext): ParseResult<
-		Positioned<UntypedCustomSyntaxDeclaration>
-	> {
+	public static function parseCustomSyntaxDeclaration(
+		context: ExpressionParserContext
+	): ParseResult<Positioned<UntypedCustomSyntaxDeclaration>> {
 		final parser = context.parser;
 		final start = parser.currentIndex;
 
@@ -44,6 +47,12 @@ class CustomSyntaxDeclParser {
 		returnIfError(parser.expect(Colon));
 		returnIfError(parser.expect(IncrementIndent));
 
+		final deferredResult = UntypedCustomSyntaxDeclaration.deferred();
+		final positionedDeferredResult: Positioned<UntypedCustomSyntaxDeclaration> = {
+			value: deferredResult,
+			position: Position.deferred(name.position)
+		};
+
 		final declarations: Array<Positioned<UntypedDeclaration>> = [];
 		final errors: Array<Positioned<ParserError>> = [];
 		final patterns: Array<UntypedCustomSyntaxDeclarationPattern> = [];
@@ -70,6 +79,19 @@ class CustomSyntaxDeclParser {
 						}
 					}
 				}
+				case Keyword(Syntax): {
+					switch(CustomSyntaxDeclParser.parseCustomSyntaxDeclaration(context)) {
+						case Success(result): {
+							declarations.push(result.map(s -> UntypedDeclaration.CustomSyntax(s)));
+							continue;
+						}
+						case NoMatch: {}
+						case Error(syntaxParserErrors): {
+							errors.pushArray(syntaxParserErrors);
+							continue;
+						}
+					}
+				}
 				case Keyword(Pattern): {
 					parser.expectOrFatal(Keyword(Pattern));
 
@@ -77,7 +99,7 @@ class CustomSyntaxDeclParser {
 
 					switch(parser.peek()) {
 						case Arrow: {
-							returnIfError(parser.expect(Arrow));
+							parser.expectOrFatal(Arrow);
 
 							switch(TypeParser.parseType(parser)) {
 								case Success(result): {
@@ -97,28 +119,22 @@ class CustomSyntaxDeclParser {
 						case _:
 					}
 
-					returnIfError(parser.expect(Colon));
-					returnIfError(parser.expect(IncrementIndent));
+					returnIfErrorWith(parser.expect(Colon), errors);
+					returnIfErrorWith(parser.expect(IncrementIndent), errors);
 
 					final tokens: Array<CustomSyntaxDeclarationToken> = [];
 					var identIncrementCount = 0;
 					while(true) {
 						switch(parser.peek()) {
 							case TriangleOpen: {
-								final state = parser.getState();
-								switch(parseSyntaxTemplateArgument(parser)) {
-									case Success(argument): {
-										tokens.push(
-											ExpressionInput(argument.value.name, argument.value.type)
-										);
-									}
-
-									// If error or no match, just revert back to old state and
-									// consume triangle token.
-									case _: {
-										parser.revertToState(state);
-										parser.expectOrFatal(TriangleOpen);
-										tokens.push(Token(TriangleOpen));
+								switch(parseSyntaxTemplateArgumentWithTriangleBrackets(
+									context,
+									name.value,
+									positionedDeferredResult
+								)) {
+									case Success(tokenResult): tokens.push(tokenResult);
+									case Error(e): {
+										return Error(errors.concat(e));
 									}
 								}
 							}
@@ -139,10 +155,10 @@ class CustomSyntaxDeclParser {
 								break;
 							}
 							case null: {
-								return Error([{
+								return Error(errors.concat([{
 									value: UnexpectedEndOfTokens,
 									position: parser.here(),
-								}]);
+								}]));
 							}
 							case token: {
 								parser.advance();
@@ -151,13 +167,13 @@ class CustomSyntaxDeclParser {
 						}
 					}
 
-					returnIfError(parser.expect(DecrementIndent));
+					returnIfErrorWith(parser.expect(DecrementIndent), errors);
 
 					final returnType: Positioned<AmbiguousType> = returnType ?? {
 						value: Known({
 							kind: Dictionary(SillyType.ANY),
 							nullable: false,
-							role: ""
+							role: null
 						}),
 						position: c.position
 					};
@@ -167,10 +183,10 @@ class CustomSyntaxDeclParser {
 					});
 				}
 				case _: {
-					return Error([{
+					return Error(errors.concat([{
 						value: ExpectedMultiple([Keyword(Def), Keyword(Pattern)]),
 						position: parser.here()
-					}]);
+					}]));
 				}
 			}
 		}
@@ -184,16 +200,58 @@ class CustomSyntaxDeclParser {
 			return Error(errors);
 		}
 
-		return Success({
-			value: new UntypedCustomSyntaxDeclaration(name, declarations, patterns),
-			position: parser.makePositionFrom(start, false)
-		});
+		positionedDeferredResult.value.setAll(name, declarations, patterns);
+		positionedDeferredResult.position.undefer(parser.makePositionFrom(start, false));
+
+		return Success(positionedDeferredResult);
 	}
 
-	static function parseSyntaxTemplateArgument(parser: Parser): ParseResult<Positioned<{
+	static function parseSyntaxTemplateArgumentWithTriangleBrackets(
+		context: ExpressionParserContext,
+		currentSyntaxName: String,
+		deferredSelf: Positioned<UntypedCustomSyntaxDeclaration>
+	): PositionedResult<CustomSyntaxDeclarationToken, ParserError> {
+		final parser = context.parser;
+		final state = parser.getState();
+		return switch(parseSyntaxTemplateArgument(context, currentSyntaxName, deferredSelf)) {
+			case Success(argument): {
+				switch(argument.value.type.value) {
+					case Left(ambiguousType): {
+						Success(ExpressionInput(
+							argument.value.name,
+							argument.value.type.map(_ -> ambiguousType)
+						));
+					}
+					case Right(customSyntaxId): {
+						Success(CustomSyntaxInput(argument.value.name, customSyntaxId));
+					}
+				}
+			}
+
+			// `UnknownSyntaxName` should be returned since it is very obviously intended to be a 
+			// valid pattern.
+			case Error([{ value: UnknownSyntaxName(name), position: position }]): {
+				Error([{ value: UnknownSyntaxName(name), position: position }]);
+			}
+
+			// If error or no match, just revert back to old state and consume triangle token.
+			case _: {
+				parser.revertToState(state);
+				parser.expectOrFatal(TriangleOpen);
+				Success(Token(TriangleOpen));
+			}
+		}
+	}
+
+	static function parseSyntaxTemplateArgument(
+		context: ExpressionParserContext,
+		currentSyntaxName: String,
+		deferredSelf: Positioned<UntypedCustomSyntaxDeclaration>
+	): ParseResult<Positioned<{
 		name: Positioned<String>,
-		type: Positioned<AmbiguousType>,
+		type: Positioned<Either<AmbiguousType, CustomSyntaxId>>,
 	}>> {
+		final parser = context.parser;
 		switch(parser.peek()) {
 			case TriangleOpen: {}
 			case _: return NoMatch;
@@ -208,16 +266,63 @@ class CustomSyntaxDeclParser {
 				parser.expectOrFatal(Identifier(identifier));
 				parser.expectOrFatal(Colon);
 				
+				final identifierWithPosition: Positioned<String> = {
+					value: identifier,
+					position: tokenWithPosition.position
+				};
+
+				final maybeSyntaxToken = parser.peekWithPosition();
+				switch(maybeSyntaxToken?.value) {
+					case Keyword(Syntax): {
+						parser.expectOrFatal(Keyword(Syntax));
+						returnIfError(parser.expect(ExclamationPoint));
+
+						final maybeSyntaxIdentifier = parser.peekWithPosition();
+						final syntaxName = switch(maybeSyntaxIdentifier) {
+							case { value: Identifier(name) }: {
+								parser.expectOrFatal(Identifier(name));
+								name;
+							}
+							case _: return Error([{
+								value: Expected(Identifier("")),
+								position: parser.here()
+							}]);
+						}
+
+						returnIfError(parser.expect(TriangleClose));
+
+						final syntaxDecl = if(syntaxName == currentSyntaxName) {
+							deferredSelf;
+						} else {
+							context.syntaxScope?.findSyntaxDeclaration(syntaxName);
+						}
+						return if(syntaxDecl != null) {
+							Success({
+								value: {
+									name: identifierWithPosition,
+									type: syntaxDecl.map(t -> Right(t.id))
+								},
+								position: tokenWithPosition.position.merge(maybeSyntaxIdentifier.position)
+							});
+						} else {
+							Error([{
+								value: UnknownSyntaxName(syntaxName),
+								position: maybeSyntaxIdentifier.position
+							}]);
+						}
+					}
+					case _:
+				}
+
 				switch(TypeParser.parseType(parser)) {
 					case Success(result): {
 						returnIfError(parser.expect(TriangleClose));
 
-						final identifierWithPosition: Positioned<String> = {
-							value: identifier,
-							position: tokenWithPosition.position
-						};
 						Success({
-							value: { name: identifierWithPosition, type: result },
+							value: {
+								name: identifierWithPosition,
+								type: result.map(t -> Left(t))
+							},
 							position: tokenWithPosition.position.merge(result.position)
 						});
 					}

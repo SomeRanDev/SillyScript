@@ -75,6 +75,12 @@ class CompileErrorExt {
 			case ParserError(TypeCannotHaveSubtype(typeKind)): {
 				typeKind + " cannot have a subtype.";
 			}
+			case ParserError(UnknownSyntaxName(name)): {
+				"There is no syntax declaration available at this point of parsing named \"" + name + "\"."; 
+			}
+			case ParserError(AmbiguousCustomSyntaxInCustomSyntax(ids)): {
+				"This syntax in syntax matches multiple routes for custom syntax; therefore, it is ambiguous.";
+			}
 
 			case TyperError(NothingWithName(name)): {
 				"There is no declaration with this name.";
@@ -184,6 +190,12 @@ class CompileErrorExt {
 			}
 			case ParserError(TypeCannotHaveSubtype(_)): {
 				"this should not have a type before it";
+			}
+			case ParserError(UnknownSyntaxName(name)): {
+				"unknown custom syntax " + name;
+			}
+			case ParserError(AmbiguousCustomSyntaxInCustomSyntax(ids)): {
+				"this custom syntax can match " + ids.length + " custom syntax";
 			}
 
 			case TyperError(NothingWithName(name)): {

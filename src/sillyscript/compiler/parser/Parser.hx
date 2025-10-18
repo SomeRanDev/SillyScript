@@ -207,7 +207,10 @@ class Parser {
 		Begins parsing the `inputTokens` provided in the constructor.
 	**/
 	public function parse(): ParseResult<Positioned<UntypedAst>> {
-		return ExpressionParser.parseListOrDictionaryPostColonIdent(this);
+		return ExpressionParser.parseListOrDictionaryPostColonIdent({
+			parser: this,
+			syntaxScope: null
+		});
 	}
 
 	/**

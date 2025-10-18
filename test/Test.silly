@@ -18,7 +18,9 @@ syntax If:
 syntax Compare:
 	pattern -> dict!bool:
 		<first: int> == <second: int>
+
 # fdfwef 
+
 if 12 == 321:
 	CameraMove(1, 2);
 	StartAnimation("../Player", "Intro");
@@ -71,4 +73,13 @@ def Blabla(a: RPGMaker = mz) -> dict:
 
 Blabla();
 
+syntax Bla:
+	pattern:
+		?<number: int>
 
+	pattern:
+		?<input: syntax!Bla>
+
+
+?123;
+???????321;

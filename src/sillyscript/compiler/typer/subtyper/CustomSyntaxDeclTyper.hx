@@ -67,6 +67,26 @@ class CustomSyntaxDeclTyper {
 							});
 						}
 					}
+					case CustomSyntaxInput(name, customSyntaxId): {
+						if(inputsMap.exists(name.value)) {
+							final o = inputsMap.get(name.value);
+							if(o != null) {
+								o.count++;
+
+								if(!type.isEqual(o.type)) {
+									errors.push({
+										value: TyperError.InconsistentTypeBetweenSyntaxTemplates,
+										position: name.position
+									});
+								}
+							}
+						} else {
+							inputsMap.set(name.value, {
+								type: SillyType.ANY_DICT,
+								count: 1
+							});
+						}
+					}
 					case Token(_):
 				}
 			}
