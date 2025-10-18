@@ -7,7 +7,27 @@ import sillyscript.Positioned.DecorationKind;
 	The main function for the compiler executable.
 **/
 function main() {
-	#if (sys || hxnodejs)
+	#if (js && nodejs.module)
+	nodeJsModuleMain();
+	#elseif (sys || (hxnodejs && nodejs.execute))
+	commandLineMain();
+	#end
+}
+
+#if (js && nodejs.module)
+/**
+	Exports `sillyscript.SillyScript` class when compiled as a NodeJS module.
+**/
+function nodeJsModuleMain() {
+	untyped __js__("module.exports = { SillyScript: $hx_exports[\"SillyScript\"] };");
+}
+#end
+
+#if (sys || (hxnodejs && nodejs.execute))
+/**
+	Runs SillyScript assuming it's called from the command-line.
+**/
+function commandLineMain() {
 	final arguments = switch(Arguments.make()) {
 		case Success(arguments): arguments;
 		case Error(error): {
@@ -45,5 +65,5 @@ function main() {
 			Sys.exit(1);
 		}
 	}
-	#end
 }
+#end

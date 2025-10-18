@@ -15,7 +15,8 @@ function main() {
 
 	switch(args[0].toLowerCase()) {
 		case "js": js();
-		case "nodejs": nodejs();
+		case "nodejs.execute": nodejsExecute();
+		case "nodejs.module": nodejsModule();
 		case "hl": hl();
 		case "c": c(args);
 		case other: {
@@ -53,12 +54,17 @@ function run(cmd: String, args: Array<String>) {
 
 function js() {
 	run("haxe", ["Compile.hxml", "-js", "out/SillyScript.js", "sillyscript.SillyScript"]);
-	Sys.println("Successfully generated for NodeJS: ./out/SillyScript.js");
+	Sys.println("Successfully generated for JavaScript: ./out/SillyScript.js");
 }
 
-function nodejs() {
+function nodejsExecute() {
 	run("haxe", ["Compile.hxml", "-lib", "hxnodejs", "-js", "out/SillyScript.js"]);
-	Sys.println("Successfully generated for JavaScript: ./out/SillyScript.js");
+	Sys.println("Successfully generated for NodeJS as an executable: ./out/SillyScript.js");
+}
+
+function nodejsModule() {
+	run("haxe", ["Compile.hxml", "-lib", "hxnodejs", "-D", "nodejs.module", "sillyscript.SillyScript", "-js", "out/SillyScript.js"]);
+	Sys.println("Successfully generated for NodeJS as a module: ./out/SillyScript.js");
 }
 
 function hl() {

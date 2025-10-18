@@ -22,7 +22,7 @@ enum CompileResult {
 	The class that manages the main SillyScript compilation behavior.
 **/
 #if js
-@:expose
+@:expose("SillyScript")
 #end
 @:keep
 class SillyScript {
