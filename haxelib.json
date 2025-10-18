@@ -1,0 +1,16 @@
+{
+	"name": "sillyscript",
+	"version": "1.0.0",
+	"description": "A compiler for SillyScript.",
+	"url": "https://somerandev.github.io/SillyScript/",
+	"license": "MPL-2.0",
+	"tags": [
+		"compiler",
+		"target",
+		"json",
+		"language"
+	],
+	"classPath": "src/",
+	"releasenote": "The initial release of SillyScript.",
+	"contributors": ["SomeRanDev"]
+}

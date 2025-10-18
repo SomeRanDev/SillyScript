@@ -1,0 +1,25 @@
+{
+	"name": "sillyscript",
+	"version": "1.0.0",
+	"description": "A compiler for SillyScript.",
+	"main": "index.js",
+	"directories": {},
+	"files": [
+		"package.json",
+		"index.js",
+		"LICENSE",
+		"README.md"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/SomeRanDev/SillyScript.git"
+	},
+	"keywords": [],
+	"author": "Maybee Rezbit",
+	"license": "MPL-2.0",
+	"type": "commonjs",
+	"bugs": {
+		"url": "https://github.com/SomeRanDev/SillyScript/issues"
+	},
+	"homepage": "https://somerandev.github.io/SillyScript/"
+}

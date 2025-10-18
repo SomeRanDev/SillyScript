@@ -1,4 +1,5 @@
 out/
 main.obj
 SillyScript.exe
+index.js
 *.bat
