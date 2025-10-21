@@ -9,7 +9,10 @@
 		"noEmitOnError": true,
 		"lib": ["esnext", "dom"],
 		"esModuleInterop": false,
-		"noEmit": true
+		"noEmit": true,
+		"paths": {
+			"sillyscript": ["../../SillyScript"]
+		}
 	},
 	"include": ["src"]
 }
